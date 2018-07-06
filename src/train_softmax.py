@@ -45,6 +45,10 @@ from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
 
 
+logging = tf.logging
+logging.set_verbosity(logging.INFO)
+
+
 def main(args):
     network = importlib.import_module(args.model_def)
     image_size = (args.image_size, args.image_size)
@@ -81,15 +85,15 @@ def main(args):
 
     nrof_classes = len(train_set)
 
-    print('Model directory: %s' % model_dir)
-    print('Log directory: %s' % log_dir)
+    logging.info('Model directory: %s' % model_dir)
+    logging.info('Log directory: %s' % log_dir)
     pretrained_model = None
     if args.pretrained_model:
         pretrained_model = os.path.expanduser(args.pretrained_model)
-        print('Pre-trained model: %s' % pretrained_model)
+        logging.info('Pre-trained model: %s' % pretrained_model)
 
     if args.lfw_dir:
-        print('LFW directory: %s' % args.lfw_dir)
+        logging.info('LFW directory: %s' % args.lfw_dir)
         # Read the file containing the pairs used for testing
         pairs = lfw.read_pairs(os.path.expanduser(args.lfw_pairs))
         # Get the paths for the corresponding images
@@ -134,13 +138,13 @@ def main(args):
         image_batch = tf.identity(image_batch, 'input')
         label_batch = tf.identity(label_batch, 'label_batch')
 
-        print('Number of classes in training set: %d' % nrof_classes)
-        print('Number of examples in training set: %d' % len(image_list))
+        logging.info('Number of classes in training set: %d' % nrof_classes)
+        logging.info('Number of examples in training set: %d' % len(image_list))
 
-        print('Number of classes in validation set: %d' % len(val_set))
-        print('Number of examples in validation set: %d' % len(val_image_list))
+        logging.info('Number of classes in validation set: %d' % len(val_set))
+        logging.info('Number of examples in validation set: %d' % len(val_image_list))
 
-        print('Building training graph')
+        logging.info('Building training graph')
 
         # Build the inference graph
         prelogits, _ = network.inference(image_batch, args.keep_probability,
@@ -211,11 +215,11 @@ def main(args):
         with sess.as_default():
 
             if pretrained_model:
-                print('Restoring pretrained model: %s' % pretrained_model)
+                logging.info('Restoring pretrained model: %s' % pretrained_model)
                 saver.restore(sess, pretrained_model)
 
             # Training and validation loop
-            print('Running training')
+            logging.info('Running training')
             nrof_steps = args.max_nrof_epochs * args.epoch_size
             nrof_val_samples = int(math.ceil(
                 args.max_nrof_epochs / args.validate_every_n_epochs))  # Validate every validate_every_n_epochs as well as in the last epoch
@@ -279,7 +283,7 @@ def main(args):
                              args.use_fixed_image_standardization)
                 stat['time_evaluate'][epoch - 1] = time.time() - t
 
-                print('Saving statistics')
+                logging.info('Saving statistics')
                 with h5py.File(stat_file_name, 'w') as f:
                     for key, value in stat.items():
                         f.create_dataset(key, data=value)
@@ -377,7 +381,7 @@ def train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_o
         np.histogram(np.minimum(np.abs(prelogits_), prelogits_hist_max), bins=1000, range=(0.0, prelogits_hist_max))[0]
 
         duration = time.time() - start_time
-        print(
+        logging.info(
             'Epoch: [%d][%d/%d]\tTime %.3f\tLoss %2.3f\tXent %2.3f\tRegLoss %2.3f\tAccuracy %2.3f\tLr %2.5f\tCl %2.3f' %
             (epoch, batch_number + 1, args.epoch_size, duration, loss_, cross_entropy_mean_, np.sum(reg_losses_),
              accuracy_, lr_, center_loss_))
@@ -396,7 +400,7 @@ def validate(args, sess, epoch, image_list, label_list, enqueue_op, image_paths_
              phase_train_placeholder, batch_size_placeholder,
              stat, loss, regularization_losses, cross_entropy_mean, accuracy, validate_every_n_epochs,
              use_fixed_image_standardization):
-    print('Running forward pass on validation set')
+    logging.info('Running forward pass on validation set')
 
     nrof_batches = len(label_list) // args.lfw_batch_size
     nrof_images = nrof_batches * args.lfw_batch_size
@@ -420,9 +424,9 @@ def validate(args, sess, epoch, image_list, label_list, enqueue_op, image_paths_
         loss_, cross_entropy_mean_, accuracy_ = sess.run([loss, cross_entropy_mean, accuracy], feed_dict=feed_dict)
         loss_array[i], xent_array[i], accuracy_array[i] = (loss_, cross_entropy_mean_, accuracy_)
         if i % 10 == 9:
-            print('.', end='')
+            logging.info('.', end='')
             sys.stdout.flush()
-    print('')
+    logging.info('')
 
     duration = time.time() - start_time
 
@@ -431,7 +435,7 @@ def validate(args, sess, epoch, image_list, label_list, enqueue_op, image_paths_
     stat['val_xent_loss'][val_index] = np.mean(xent_array)
     stat['val_accuracy'][val_index] = np.mean(accuracy_array)
 
-    print('Validation Epoch: %d\tTime %.3f\tLoss %2.3f\tXent %2.3f\tAccuracy %2.3f' %
+    logging.info('Validation Epoch: %d\tTime %.3f\tLoss %2.3f\tXent %2.3f\tAccuracy %2.3f' %
           (epoch, duration, np.mean(loss_array), np.mean(xent_array), np.mean(accuracy_array)))
 
 
@@ -441,7 +445,7 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
              stat, epoch, distance_metric, subtract_mean, use_flipped_images, use_fixed_image_standardization):
     start_time = time.time()
     # Run forward pass to calculate embeddings
-    print('Runnning forward pass on LFW images')
+    logging.info('Runnning forward pass on LFW images')
 
     # Enqueue one epoch of image paths and labels
     nrof_embeddings = len(actual_issame) * 2  # nrof_pairs * nrof_images_per_pair
@@ -469,9 +473,9 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
         lab_array[lab] = lab
         emb_array[lab, :] = emb
         if i % 10 == 9:
-            print('.', end='')
+            logging.info('.', end='')
             sys.stdout.flush()
-    print('')
+    logging.info('')
     embeddings = np.zeros((nrof_embeddings, embedding_size * nrof_flips))
     if use_flipped_images:
         # Concatenate embeddings for flipped and non flipped version of the images
@@ -485,8 +489,8 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     _, _, accuracy, val, val_std, far = lfw.evaluate(embeddings, actual_issame, nrof_folds=nrof_folds,
                                                      distance_metric=distance_metric, subtract_mean=subtract_mean)
 
-    print('Accuracy: %2.5f+-%2.5f' % (np.mean(accuracy), np.std(accuracy)))
-    print('Validation rate: %2.5f+-%2.5f @ FAR=%2.5f' % (val, val_std, far))
+    logging.info('Accuracy: %2.5f+-%2.5f' % (np.mean(accuracy), np.std(accuracy)))
+    logging.info('Validation rate: %2.5f+-%2.5f @ FAR=%2.5f' % (val, val_std, far))
     lfw_time = time.time() - start_time
     # Add validation loss and accuracy to summary
     summary = tf.Summary()
@@ -503,20 +507,20 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
 
 def save_variables_and_metagraph(sess, saver, summary_writer, model_dir, model_name, step):
     # Save the model checkpoint
-    print('Saving variables')
+    logging.info('Saving variables')
     start_time = time.time()
     checkpoint_path = os.path.join(model_dir, 'model-%s.ckpt' % model_name)
     saver.save(sess, checkpoint_path, global_step=step, write_meta_graph=False)
     save_time_variables = time.time() - start_time
-    print('Variables saved in %.2f seconds' % save_time_variables)
+    logging.info('Variables saved in %.2f seconds' % save_time_variables)
     metagraph_filename = os.path.join(model_dir, 'model-%s.meta' % model_name)
     save_time_metagraph = 0
     if not os.path.exists(metagraph_filename):
-        print('Saving metagraph')
+        logging.info('Saving metagraph')
         start_time = time.time()
         saver.export_meta_graph(metagraph_filename)
         save_time_metagraph = time.time() - start_time
-        print('Metagraph saved in %.2f seconds' % save_time_metagraph)
+        logging.info('Metagraph saved in %.2f seconds' % save_time_metagraph)
     summary = tf.Summary()
     # pylint: disable=maybe-no-member
     summary.value.add(tag='time/save_variables', simple_value=save_time_variables)
