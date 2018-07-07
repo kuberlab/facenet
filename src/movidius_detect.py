@@ -1,6 +1,7 @@
 from mvnc import mvncapi as mvnc
 import numpy as np
 import cv2
+import argparse
 
 def get_parser():
     parser = argparse.ArgumentParser(
