@@ -15,7 +15,9 @@ def conver_pnet(dir,scale,h,w):
             pnet.load(os.path.join('align', 'det1.npy'), sess)
         o1 = tf.get_default_graph().get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
         o2 = tf.get_default_graph().get_tensor_by_name('pnet/prob1:0')
-        o = tf.concat([o1,o2],axis=3)
+        o1 = tf.pad(o1, [[0, 0],[0, 0], [0, 0], [0, 2]])
+        o2 = tf.pad(o2, [[0, 0],[0, 0], [0, 0], [4, 0]])
+        o = tf.add(o1,o2)
         tf.identity(o,name='output')
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
@@ -45,9 +47,10 @@ def preper_pnet(dir):
         print("-----------------------")
         conver_pnet(dir,name,hs,ws)
         cmd = 'mvNCCompile movidius/pnet/{}/pnet.meta -in input -on output -o movidius/pnet-{}.graph'.format(name,name)
-        out = subprocess.check_output(cmd, shell = True)
-        print(out)
+        #out = subprocess.check_output(cmd, shell = True)
+        print(cmd)
         print("-----------------------")
+        break
 
 def main():
     dir = 'movidius'
