@@ -168,7 +168,7 @@ class Network(object):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
-            output = tf.nn.relu(inp) + tf.multiply(alpha, -tf.nn.relu(-inp))
+            output = tf.nn.relu(inp) + tf.multiply(tf.multiply(tf.nn.relu(tf.multiply(inp,-1)),-1),alpha)
         return output
 
     @layer
@@ -207,11 +207,12 @@ class Network(object):
     """
     @layer
     def softmax(self, target, axis, name=None):
-        max_axis = tf.reduce_max(target, axis, keepdims=True)
-        target_exp = tf.exp(target-max_axis)
-        normalize = tf.reduce_sum(target_exp, axis, keepdims=True)
-        softmax = tf.div(target_exp, normalize, name)
-        return softmax
+        #max_axis = tf.reduce_max(target, axis, keepdims=True)
+        #target_exp = tf.exp(target-max_axis)
+        #normalize = tf.reduce_sum(target_exp, axis, keepdims=True)
+        #softmax = tf.div(target_exp, normalize, name)
+        #return softmax
+        return tf.nn.softmax(target,axis=axis,name=name)
     
 class PNet(Network):
     def setup(self):
