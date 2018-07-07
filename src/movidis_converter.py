@@ -17,6 +17,8 @@ def conver_pnet(dir,scale,h,w):
             pnet.load(os.path.join('align', 'det1.npy'), sess)
         o1 = tf.get_default_graph().get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
         o2 = tf.get_default_graph().get_tensor_by_name('pnet/fake_prob:0')
+        o1 = tf.reshape(o1,[1,int(h/2)-5,int(w/2)-5,4])
+        o2 = tf.reshape(o2,[1,int(h/2)-5,int(w/2)-5,2])
         o3 = tf.pad(o1, [[0, 0],[0, 0], [0, 0], [0, 2]])
         o4 = tf.pad(o2, [[0, 0],[0, 0], [0, 0], [4, 0]])
         o = tf.add(o3,o4)
