@@ -6,6 +6,8 @@ import subprocess
 
 def conver_pnet(dir,scale,h,w):
     dir = os.path.join(dir,"pnet",scale)
+    if not os.path.exists(dir):
+        os.mkdir(dir)
     tf.reset_default_graph()
     with tf.Session() as  sess:
         data = tf.placeholder(tf.float32, (1,h,w,3), 'input')
