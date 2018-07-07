@@ -33,8 +33,8 @@ def preper_pnet(dir):
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
     factor_count=0
-    h=600
-    w=800
+    h=300
+    w=400
     minl=np.amin([h, w])
     m=12.0/minsize
     minl=minl*m
