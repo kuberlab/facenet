@@ -38,6 +38,7 @@ def main():
     device = mvnc.Device(devices[0])
     device.open()
     graph = mvnc.Graph('graph')
+    print('Load movidius/pnet-{}.graph'.format(args.size))
     with open('movidius/pnet-{}.graph'.format(args.size), mode='rb') as f:
         graphFileBuff = f.read()
     fifoIn, fifoOut = graph.allocate_with_fifos(device, graphFileBuff)
