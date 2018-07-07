@@ -46,7 +46,9 @@ def main():
     h,w = get_size(args.size)
     im_data = imresample(img,h,w)
     im_data = (im_data-127.5)*0.0078125
+    print(im_data.shape)
     img_y = np.transpose(im_data, (1,0,2))
+    print(img_y.shape)
     print('Start download to NCS...')
     graph.queue_inference_with_fifo_elem(fifoIn, fifoOut, img_y, 'user object')
     output, userobj = fifoOut.read_elem()
