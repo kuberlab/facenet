@@ -23,7 +23,7 @@ def conver_pnet(dir,scale,h,w):
         #proxy= tf.nn.max_pool(o2,ksize=[1, 1, 1, 1],strides=[1, 1, 1, 1], padding='SAME', name='proxy')
         #o = tf.concat([o1,o2], 3)
         #o = tf.multiply(o,1,name='output')
-        tf.identity(o,name='output')
+        tf.identity(o1,name='output')
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
         saver = tf.train.Saver()
