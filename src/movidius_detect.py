@@ -52,6 +52,7 @@ def main():
     print('Start download to NCS...')
     graph.queue_inference_with_fifo_elem(fifoIn, fifoOut, img_y, 'user object')
     output, userobj = fifoOut.read_elem()
+    print(output.shape)
     output = output.reshape((int(h/2)-5, int(w/2)-5,6))
     print(output)
     print(userobj)
