@@ -21,7 +21,7 @@ def conver_pnet(dir,scale,h,w):
         #o2 = tf.pad(o2, [[0, 0],[0, 0], [0, 0], [4, 0]])
         #o = tf.add(o1,o2)
         proxy= tf.nn.max_pool(o2,ksize=[1, 1, 1, 1],strides=[1, 1, 1, 1], padding='SAME', name='proxy')
-        tf.concat([o1,o2], 3, name='output')
+        tf.concat([o1,proxy], 3, name='output')
         #tf.identity(o,name='output')
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
