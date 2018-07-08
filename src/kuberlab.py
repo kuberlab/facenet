@@ -115,10 +115,7 @@ def main():
                     i = i.astype(np.float32)
                     graph.queue_inference_with_fifo_elem(fifoIn, fifoOut, i, 'user object')
                     output, userobj = fifoOut.read_elem()
-                    print(output)
                     print(output.shape)
-                output, userobj = fifoOut.read_elem()
-                print(output.shape)
                 add_overlays(frame, bounding_boxes, frame_rate)
 
             frame_count += 1
