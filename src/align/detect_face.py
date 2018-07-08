@@ -223,7 +223,9 @@ class PNetMovidius(Network):
     def join(self):
         o1 = self.layers['conv4-1']
         o2 = self.layers['conv4-2']
-        self.proxy = tf.concat([o2,o2],axis=3,name='proxy')
+        o = tf.concat([o2,o2],axis=3)
+        bias = tf.get_variable('proxy_bias',[6], trainable=True)
+        self.proxy = tf.nn.bias_add(o,bias,name='proxy')
 
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
