@@ -226,8 +226,9 @@ class PNetMovidius(Network):
         #o3 = tf.pad(o1, [[0, 0],[0, 0], [0, 0], [4, 0]],name='proxy_pad1')
         #o4 = tf.pad(o2, [[0, 0],[0, 0], [0, 0], [0, 2]],name='proxy_pad2')
         o = tf.concat([o1,o2],axis=3,name='proxy_add1')
-        bias = tf.get_variable('proxy_bias1',[6], trainable=True)
-        self.proxy = tf.nn.bias_add(o,bias,name='proxy')
+        #bias = tf.get_variable('proxy_bias1',[6], trainable=True)
+        #self.proxy = tf.nn.bias_add(o,bias,name='proxy')
+        self.proxy = tf.multiply(o,1,name='proxy')
 
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
