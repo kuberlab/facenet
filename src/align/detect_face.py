@@ -207,13 +207,13 @@ class Network(object):
     """
     @layer
     def softmax(self, target, axis, name=None):
-        #max_axis = tf.reduce_max(target, axis, keepdims=True)
-        #target_exp = tf.exp(target-max_axis)
-        #normalize = tf.reduce_sum(target_exp, axis, keepdims=True)
-        #softmax = tf.div(target_exp, normalize, name)
-        #return softmax
-        tf.identity(target,'fake_prob')
-        return tf.nn.softmax(target,axis=axis,name=name)
+        max_axis = tf.reduce_max(target, axis, keepdims=True)
+        target_exp = tf.exp(target-max_axis)
+        normalize = tf.reduce_sum(target_exp, axis, keepdims=True)
+        softmax = tf.div(target_exp, normalize, name)
+        return softmax
+        #tf.identity(target,'fake_prob')
+        #return tf.nn.softmax(target,axis=axis,name=name)
     
 class PNet(Network):
     def setup(self):
