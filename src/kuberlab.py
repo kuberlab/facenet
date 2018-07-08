@@ -45,7 +45,8 @@ def add_overlays(frame, boxes, frame_rate):
                 thickness=2, lineType=2)
 
 def get_images(image, bounding_boxes):
-    face_crop_size=160, face_crop_margin=32
+    face_crop_size=160
+    face_crop_margin=32
     images = []
 
     for bb in bounding_boxes:
