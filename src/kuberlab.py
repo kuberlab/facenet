@@ -111,7 +111,8 @@ def main():
             if len(bounding_boxes)>0:
                 imgs = get_images(frame,bounding_boxes)
                 for i in imgs:
-                    print(i)
+                    print(i.shape)
+                    i = i.astype(np.float32)
                     graph.queue_inference_with_fifo_elem(fifoIn, fifoOut, i, 'user object')
                     output, userobj = fifoOut.read_elem()
                     print(output)
