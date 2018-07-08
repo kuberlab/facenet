@@ -12,7 +12,7 @@ def conver_pnet(dir,scale,h,w):
     with tf.Session() as  sess:
         data = tf.placeholder(tf.float32, (1,h,w,3), 'input')
         with tf.variable_scope('pnet'):
-            pnet = df.PNet({'data':data})
+            pnet = df.PNetMovidius({'data':data})
         with tf.variable_scope('pnet',reuse=tf.AUTO_REUSE):
             pnet.load(os.path.join('align', 'det1.npy'), sess)
         o1 = tf.get_default_graph().get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
