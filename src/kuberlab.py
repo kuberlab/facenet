@@ -7,6 +7,8 @@ import tensorflow as tf
 import numpy as np
 import time
 from scipy import misc
+from imutils.video import VideoStream
+from imutils.video import FPS
 
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -86,13 +88,22 @@ def main():
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
-    video_capture = cv2.VideoCapture(0)
+
+
+
+
+
+    #video_capture = cv2.VideoCapture(0)
+    vs = VideoStream(usePiCamera=True).start()
+    time.sleep(1)
+    fps = FPS().start()
     bounding_boxes = []
     with tf.Session() as  sess:
         pnet,rnet,onet = detect_face.create_mtcnn(sess,'align')
         while True:
             # Capture frame-by-frame
-            ret, frame = video_capture.read()
+            frame = vs.read()
+            #ret, frame = video_capture.read()
             #frame = cv2.imread(args.image).astype(np.float32)
             frame = cv2.resize(frame, (320, 320),interpolation=cv2.INTER_AREA)
 
@@ -125,7 +136,9 @@ def main():
                 break
 
     # When everything is done, release the capture
-    video_capture.release()
+    #video_capture.release()
+    fps.stop()
+    vs.stop()
     cv2.destroyAllWindows()
     fifoIn.destroy()
     fifoOut.destroy()
