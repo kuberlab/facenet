@@ -216,6 +216,15 @@ class Network(object):
         #return tf.nn.softmax(target,axis=axis,name=name)
 
 class PNetMovidius(Network):
+    def __init__(self, inputs, trainable=True):
+        super(PNetMovidius, self).__init__(inputs, trainable)
+        self.proxy = None
+
+    def join(self):
+        o1 = self.layers['conv4-1']
+        o2 = self.layers['conv4-2']
+        self.proxy = tf.concat([o1,o2],axis=3,name='proxy')
+
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
          .conv(3, 3, 10, 1, 1, padding='VALID', relu=False, name='conv1')
@@ -229,6 +238,8 @@ class PNetMovidius(Network):
 
         (self.feed('PReLU3') #pylint: disable=no-value-for-parameter
          .conv(1, 1, 4, 1, 1, relu=False, name='conv4-2'))
+
+        (self.join())
 
 class PNet(Network):
     def setup(self):

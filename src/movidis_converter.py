@@ -22,7 +22,7 @@ def conver_pnet(dir,scale,h,w):
         #o3 = tf.pad(o1, [[0, 0],[0, 0], [0, 0], [0, 2]])
         #o1 = tf.pad(o1, [[0,1]])
         #o2 = tf.pad(o2, [[1,0]])
-        o = tf.concat([o1,o2],axis=3,name='proxy')
+        #o = tf.concat([o1,o2],axis=3,name='proxy')
         #proxy= tf.nn.max_pool(o,ksize=[1, 1, 1, 1],strides=[1, 1, 1, 1], padding='SAME', name='proxy')
         #o = tf.concat([o1,o2], 3)
         #o = tf.multiply(o,1,name='output')
