@@ -86,14 +86,14 @@ def main():
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
-    #video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(0)
     bounding_boxes = []
     with tf.Session() as  sess:
         pnet,rnet,onet = detect_face.create_mtcnn(sess,'align')
         while True:
             # Capture frame-by-frame
-            #ret, frame = video_capture.read()
-            frame = cv2.imread(args.image).astype(np.float32)
+            ret, frame = video_capture.read()
+            #frame = cv2.imread(args.image).astype(np.float32)
             frame = cv2.resize(frame, (320, 320),interpolation=cv2.INTER_AREA)
 
 
@@ -119,14 +119,14 @@ def main():
                 add_overlays(frame, bounding_boxes, frame_rate)
 
             frame_count += 1
-            #cv2.imshow('Video', frame)
+            cv2.imshow('Video', frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
     # When everything is done, release the capture
-    #video_capture.release()
-    #cv2.destroyAllWindows()
+    video_capture.release()
+    cv2.destroyAllWindows()
     fifoIn.destroy()
     fifoOut.destroy()
     graph.destroy()
