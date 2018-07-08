@@ -223,7 +223,7 @@ class PNetMovidius(Network):
     def join(self):
         o1 = self.layers['conv4-1']
         o2 = self.layers['conv4-2']
-        self.proxy = tf.concat([o1,o2],axis=3,name='proxy')
+        self.proxy = tf.concat([o1,o1],axis=3,name='proxy')
 
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
