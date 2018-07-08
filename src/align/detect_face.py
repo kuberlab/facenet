@@ -32,6 +32,7 @@ import numpy as np
 import tensorflow as tf
 #from math import floor
 import cv2
+import time
 import os
 
 def layer(op):
@@ -308,6 +309,31 @@ class ONet(Network):
         (self.feed('prelu5') #pylint: disable=no-value-for-parameter
              .fc(10, relu=False, name='conv6-3'))
 
+class ONetMavidius(Network):
+    def setup(self):
+        (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
+         .conv(3, 3, 32, 1, 1, padding='VALID', relu=False, name='conv1')
+         .prelu(name='prelu1')
+         .max_pool(3, 3, 2, 2, name='pool1')
+         .conv(3, 3, 64, 1, 1, padding='VALID', relu=False, name='conv2')
+         .prelu(name='prelu2')
+         .max_pool(3, 3, 2, 2, padding='VALID', name='pool2')
+         .conv(3, 3, 64, 1, 1, padding='VALID', relu=False, name='conv3')
+         .prelu(name='prelu3')
+         .max_pool(2, 2, 2, 2, name='pool3')
+         .conv(2, 2, 128, 1, 1, padding='VALID', relu=False, name='conv4')
+         .prelu(name='prelu4')
+         .fc(256, relu=False, name='conv5')
+         .prelu(name='prelu5'))
+
+        (tf.identity(self.layers['prelu5'],name='proxy'))
+
+        (self.feed('prelu5') #pylint: disable=no-value-for-parameter
+         .fc(4, relu=False, name='conv6-2'))
+
+        (self.feed('prelu5') #pylint: disable=no-value-for-parameter
+         .fc(10, relu=False, name='conv6-3'))
+
 def create_mtcnn(sess, model_path):
     if not model_path:
         model_path,_ = os.path.split(os.path.realpath(__file__))
@@ -325,9 +351,25 @@ def create_mtcnn(sess, model_path):
         onet = ONet({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess)
         
-    pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
-    rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
-    onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    pnet_fun0 = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+    rnet_fun0 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+    onet_fun0 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    def pnet_fun(img):
+        start = time.time()
+        res = pnet_fun0(img)
+        print("PNET: {}".format(time.time()-start))
+        return res
+    def rnet_fun(img):
+        start = time.time()
+        res = rnet_fun0(img)
+        print("RNET: {}".format(time.time()-start))
+        return res
+    def onet_fun(img):
+        start = time.time()
+        res = onet_fun0(img)
+        print("ONET: {}".format(time.time()-start))
+        return res
+
     return pnet_fun, rnet_fun, onet_fun
 
 def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):

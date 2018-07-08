@@ -4,6 +4,21 @@ import os
 import numpy as np
 import subprocess
 
+def conver_onet(dir):
+    dir = os.path.join(dir,"onet")
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    tf.reset_default_graph()
+    with tf.Session() as  sess:
+        data = tf.placeholder(tf.float32, (1,48,48,3), 'input')
+        with tf.variable_scope('onet'):
+            onet = df.ONetMavidius({'data':data})
+        with tf.variable_scope('onet',reuse=tf.AUTO_REUSE):
+            onet.load(os.path.join('align', 'det3.npy'), sess)
+        sess.run(tf.global_variables_initializer())
+        sess.run(tf.local_variables_initializer())
+        saver = tf.train.Saver()
+        saver.save(sess, os.path.join(dir,'onet'))
 def conver_pnet(dir,scale,h,w):
     dir = os.path.join(dir,"pnet",scale)
     if not os.path.exists(dir):
@@ -64,7 +79,8 @@ def main():
     dir = 'movidius'
     if not os.path.exists(dir):
         os.mkdir(dir)
-    preper_pnet(dir)
+    #preper_pnet(dir)
+    conver_onet(dir)
 
 if __name__ == "__main__":
     main()
