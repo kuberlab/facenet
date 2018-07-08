@@ -1,4 +1,4 @@
-#from mvnc import mvncapi as mvnc
+from mvnc import mvncapi as mvnc
 import numpy as np
 import cv2
 import argparse
@@ -6,6 +6,7 @@ import align.detect_face as detect_face
 import tensorflow as tf
 import numpy as np
 import time
+from scipy import misc
 
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -43,6 +44,22 @@ def add_overlays(frame, boxes, frame_rate):
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
                 thickness=2, lineType=2)
 
+def get_images(image, bounding_boxes):
+    face_crop_size=160, face_crop_margin=32
+    images = []
+
+    for bb in bounding_boxes:
+        bounding_box = np.zeros(4, dtype=np.int32)
+        img_size = np.asarray(image.shape)[0:2]
+        bounding_box[0] = np.maximum(bb[0] - face_crop_margin / 2, 0)
+        bounding_box[1] = np.maximum(bb[1] - face_crop_margin / 2, 0)
+        bounding_box[2] = np.minimum(bb[2] + face_crop_margin / 2, img_size[1])
+        bounding_box[3] = np.minimum(bb[3] + face_crop_margin / 2, img_size[0])
+        cropped = image[bounding_box[1]:bounding_box[3], bounding_box[0]:bounding_box[2], :]
+        image = misc.imresize(cropped, (face_crop_size, face_crop_size), interp='bilinear')
+        images.append(image)
+    return images
+
 def main():
     frame_interval = 3  # Number of frames after which to run face detection
     fps_display_interval = 5  # seconds
@@ -52,7 +69,19 @@ def main():
 
     parser = get_parser()
     args = parser.parse_args()
-    img = cv2.imread(args.image).astype(np.float32)
+
+    devices = mvnc.enumerate_devices()
+    if len(devices) == 0:
+        print('No devices found')
+        quit()
+    device = mvnc.Device(devices[0])
+    device.open()
+    graph = mvnc.Graph('graph')
+    print('Load facenet')
+    with open('facenet.graph', mode='rb') as f:
+        graphFileBuff = f.read()
+    fifoIn, fifoOut = graph.allocate_with_fifos(device, graphFileBuff)
+
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
@@ -78,6 +107,14 @@ def main():
                     frame_count = 0
 
             if len(bounding_boxes)>0:
+                imgs = get_images(frame,bounding_boxes)
+                for i in imgs:
+                    graph.queue_inference_with_fifo_elem(fifoIn, fifoOut, i, 'user object')
+                    output, userobj = fifoOut.read_elem()
+                    print(output)
+                    print(output.shape)
+                output, userobj = fifoOut.read_elem()
+                print(output.shape)
                 add_overlays(frame, bounding_boxes, frame_rate)
 
             frame_count += 1
@@ -89,6 +126,11 @@ def main():
     # When everything is done, release the capture
     video_capture.release()
     cv2.destroyAllWindows()
+    fifoIn.destroy()
+    fifoOut.destroy()
+    graph.destroy()
+    device.close()
+    print('Finished')
 
 
 if __name__ == "__main__":
