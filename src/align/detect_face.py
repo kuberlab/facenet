@@ -221,6 +221,8 @@ class PNetMovidius(Network):
         self.proxy = None
 
     def join(self):
+        s = self.layers['PReLU3']
+        tf.identity(s,name='mprelu')
         o1 = self.layers['conv4-1']
         o2 = self.layers['conv4-2']
         #o3 = tf.pad(o1, [[0, 0],[0, 0], [0, 0], [4, 0]],name='proxy_pad1')
