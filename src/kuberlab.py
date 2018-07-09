@@ -92,17 +92,12 @@ class PNetHandler(object):
         self.pnetGraph.destroy()
 
     def proxy(self):
-        pnetGraph = self.pnetGraph
-        pnetIn = self.pnetIn
-        pnetOut = self.pnetOut
-        h = self.h
-        w = self.w
-        def _exec(img):
-            print("Exec {}x{} on {}".format(h,w,img.shape))
-            pnetGraph.queue_inference_with_fifo_elem(pnetIn, pnetOut, img, 'pnet')
-            output, userobj = pnetOut.read_elem()
+        def _exec(self,img):
+            print("Exec {}x{} on {}".format(self.h,self.w,img.shape))
+            self.pnetGraph.queue_inference_with_fifo_elem(self.pnetIn, self.pnetOut, img, 'pnet')
+            output, userobj = self.pnetOut.read_elem()
             return output
-        return (lambda x: _exec(x),self.h,self.w)
+        return (lambda x: _exec(self,x),self.h,self.w)
 
 def main():
     frame_interval = 3  # Number of frames after which to run face detection
