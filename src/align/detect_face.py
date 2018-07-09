@@ -188,7 +188,7 @@ class Network(object):
                 nodec = tf.multiply(tf.multiply(neg, tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')),alpha)
             output = tf.add(nodec, nodea)
         if proxy_name is not None:
-            tf.identity(nodea,name=proxy_name)
+            tf.identity(inp,name=proxy_name)
         return output
 
     @layer
