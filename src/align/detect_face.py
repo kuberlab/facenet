@@ -165,11 +165,13 @@ class Network(object):
             return output
 
     @layer
-    def prelu(self, inp, name):
+    def prelu(self, inp, name,proxy_name=None):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
             output = tf.nn.relu(inp) + tf.multiply(tf.multiply(tf.nn.relu(tf.multiply(inp,-1)),-1),alpha)
+        if proxy_name is not None:
+            tf.identity(output,name='proxy')
         return output
 
     @layer
@@ -365,10 +367,8 @@ class ONetMovidius(Network):
          .conv(2, 2, 128, 1, 1, padding='VALID', relu=False, name='conv4')
          .prelu(name='prelu4')
          .fc(256, relu=False, name='conv5')
-         .prelu(name='prelu5')
+         .prelu(name='prelu5',proxy_name='proxy')
          .fc(2, relu=False, name='conv6-1'))
-
-        (tf.identity(self.layers['prelu5'],name='proxy'))
 
         (self.feed('prelu5') #pylint: disable=no-value-for-parameter
          .fc(4, relu=False, name='conv6-2'))
