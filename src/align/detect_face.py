@@ -381,15 +381,15 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
         model_path,_ = os.path.split(os.path.realpath(__file__))
 
     with tf.variable_scope('pnet'):
-        data = tf.placeholder(tf.float32, (None,None,None,3), 'input')
-        pnet = PNet({'data':data})
+        data = tf.placeholder(tf.float32, (None,None,None,2), 'input')
+        pnet = PNetMovidiusInference({'data':data})
         pnet.load(os.path.join(model_path, 'det1.npy'), sess)
     with tf.variable_scope('rnet'):
-        data = tf.placeholder(tf.float32, (None,128), 'input')
+        data = tf.placeholder(tf.float32, (None,2), 'input')
         rnet = RNetMovidiusInference({'data':data})
         rnet.load(os.path.join(model_path, 'det2.npy'), sess,ignore_missing=True)
     with tf.variable_scope('onet'):
-        data = tf.placeholder(tf.float32, (None,256), 'input')
+        data = tf.placeholder(tf.float32, (None,2), 'input')
         onet = ONetMovidiusInference({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess,ignore_missing=True)
 
@@ -400,7 +400,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
         img = img.astype(np.float32)
         print("To pnet {}".format(img.shape))
         out = movidius_pnet(img)
-        print("From pnet {}".format(out))
+        print("From pnet {}".format(out.shape))
         out = out.reshape((1,9,14,6))
         out1 = out[:,:,:,0:2]
         out2 = out[:,:,:,2:]
@@ -412,7 +412,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
             i = i.astype(np.float32)
             print("To rnet {}".format(i.shape))
             out = movidius_rnet(i)
-            print("From rnet {}".format(out))
+            print("From rnet {}".format(out.shape))
             out = out.reshape((1,1,6))
             out1 = out[:,:,0:2]
             out2 = out[:,:,2:]
