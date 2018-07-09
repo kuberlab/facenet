@@ -113,7 +113,7 @@ def main():
             onetGraph.queue_inference_with_fifo_elem(onetIn, onetOut, img, 'onet')
             output, userobj = onetOut.read_elem()
             return output
-        pnet,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align')
+        pnet,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align',_rent_proxy,_onet_proxy)
         while True:
             # Capture frame-by-frame
             if args.image is None:
