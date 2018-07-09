@@ -191,8 +191,9 @@ class Network(object):
                 print(nodea)
                 nodeb = tf.nn.relu(tf.multiply(neg, tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
                 print(nodeb)
-                nodec = tf.multiply(alpha,tf.multiply(neg,
-                                                tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
+                q = tf.multiply(neg,alpha)
+                print(q)
+                nodec = tf.multiply(tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),q)
                 print(nodec)
             output = tf.add(nodec, nodea)
             if proxy_name is not None:
