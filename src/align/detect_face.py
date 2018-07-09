@@ -429,8 +429,8 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
             out = movidius_onet(i)
             out = out.reshape((16,))
             out1 = out[0:2]
-            out2 = out[2:7]
-            out3 = out[7:]
+            out2 = out[2:6]
+            out3 = out[6:]
             outs1.append(out1)
             outs2.append(out2)
             outs3.append(out3)
