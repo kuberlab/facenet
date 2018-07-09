@@ -111,7 +111,7 @@ def main():
     if args.image is None:
         from imutils.video import VideoStream
         from imutils.video import FPS
-        vs = VideoStream(usePiCamera=True).start()
+        vs = VideoStream(usePiCamera=True,resolution=(640, 480),framerate=24).start()
         time.sleep(1)
         fps = FPS().start()
     bounding_boxes = []
