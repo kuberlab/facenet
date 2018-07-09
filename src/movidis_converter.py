@@ -24,13 +24,17 @@ def conver_onet(dir):
 
 def conver_rnet(dir):
     tf.reset_default_graph()
-    with tf.Graph().as_default():
+    with tf.Graph().as_default() as graph:
         dir = os.path.join(dir,"rnet")
         if not os.path.exists(dir):
             os.mkdir(dir)
         data = tf.placeholder(tf.float32, (1,24,24,3), 'input')
         with tf.variable_scope('rnet'):
             onet = df.RNetMovidius({'data':data})
+
+        rnet_output0 = graph.get_tensor_by_name('rnet/conv5-1/conv5-1:0')
+        rnet_output1 = graph.get_tensor_by_name('rnet/conv5-2/conv5-2:0')
+        rnet_output2 = tf.concat([rnet_output0, rnet_output1], -1, name = 'rnet/output')
         for f in tf.global_variables():
             print(f)
         saver = tf.train.Saver(tf.global_variables())
