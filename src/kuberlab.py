@@ -98,7 +98,7 @@ def main():
     fifoIn, fifoOut = fGraph.allocate_with_fifos(device, fgraphFileBuff)
 
     minsize = 20  # minimum size of face
-    threshold = [0.6, 0.7, 0.7]  # three steps's threshold
+    threshold = [0.4, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
 
     #video_capture = cv2.VideoCapture(0)
