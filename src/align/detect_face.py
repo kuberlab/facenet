@@ -381,7 +381,8 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
         model_path,_ = os.path.split(os.path.realpath(__file__))
 
     with tf.variable_scope('pnet'):
-        data = tf.placeholder(tf.float32, (None,None,None,2), 'input')
+        #data = tf.placeholder(tf.float32, (None,None,None,2), 'input')
+        data = tf.placeholder(tf.float32, (None,None,None,3), 'input')
         pnet = PNet({'data':data})
         pnet.load(os.path.join(model_path, 'det1.npy'), sess,ignore_missing=True)
     with tf.variable_scope('rnet'):
