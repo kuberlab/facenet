@@ -177,7 +177,7 @@ class Network(object):
             o1 = inp*-1.0
             o2 = tf.nn.relu(o1)
             o3 = o2*-1.0
-            o4 = o3*alpha
+            o4 = tf.multiply(o3,alpha)
             o0 = tf.nn.relu(inp)
            # output = tf.add(tf.nn.relu(inp),o4)
             output = tf.add(o0,o4)
