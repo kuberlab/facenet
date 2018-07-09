@@ -278,6 +278,9 @@ def addOnet(sess):
     onet_output0 = graph.get_tensor_by_name('onet/conv6-1/conv6-1:0')
     onet_output1 = graph.get_tensor_by_name('onet/conv6-2/conv6-2:0')
     onet_output2 = graph.get_tensor_by_name('onet/conv6-3/conv6-3:0')
+    onet_output0 = tf.reshape(onet_output0,[1,1,1,2])
+    onet_output1 = tf.reshape(onet_output1,[1,1,1,4])
+    onet_output2 = tf.reshape(onet_output2,[1,1,1,10])
     onet_output2 = tf.concat([onet_output0, onet_output1, onet_output2], -1, name = 'onet/output')
 
 
