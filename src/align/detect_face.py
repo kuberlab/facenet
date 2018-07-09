@@ -169,7 +169,7 @@ class Network(object):
             return output
 
     @layer
-    def prelu(self, inp, name,proxy_name=None):
+    def prelu(self, inp, name):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
@@ -190,9 +190,6 @@ class Network(object):
                 q = tf.multiply(neg,alpha)
                 nodec = tf.multiply(tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),q)
             output = tf.add(nodec, nodea)
-            if proxy_name is not None:
-                tf.identity(output,name=proxy_name)
-
 
         return output
 
@@ -302,7 +299,7 @@ class RNetMovidius(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
          .conv(3, 3, 28, 1, 1, padding='VALID', relu=False, name='conv1')
-         .prelu(name='prelu1',proxy_name='cprelu1')
+         .prelu(name='prelu1')
          .max_pool(3, 3, 2, 2, name='pool1')
          .conv(3, 3, 48, 1, 1, padding='VALID', relu=False, name='conv2')
          .prelu(name='prelu2')
@@ -310,7 +307,7 @@ class RNetMovidius(Network):
          .conv(2, 2, 64, 1, 1, padding='VALID', relu=False, name='conv3')
          .prelu(name='prelu3')
          .fc(128, relu=False, name='conv4')
-         .prelu(name='prelu4',proxy_name='proxy')
+         .prelu(name='prelu4')
          .fc(2, relu=False, name='conv5-1'))
 
         (self.feed('prelu4') #pylint: disable=no-value-for-parameter
@@ -366,7 +363,7 @@ class ONetMovidius(Network):
          .conv(2, 2, 128, 1, 1, padding='VALID', relu=False, name='conv4')
          .prelu(name='prelu4')
          .fc(256, relu=False, name='conv5')
-         .prelu(name='prelu5',proxy_name='proxy')
+         .prelu(name='prelu5')
          .fc(2, relu=False, name='conv6-1'))
 
         (self.feed('prelu5') #pylint: disable=no-value-for-parameter
