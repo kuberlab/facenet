@@ -23,22 +23,24 @@ def conver_onet(dir):
         print(cmd)
 
 def conver_rnet(dir):
-    dir = os.path.join(dir,"rnet")
-    if not os.path.exists(dir):
-        os.mkdir(dir)
     tf.reset_default_graph()
-    with tf.Session() as  sess:
+    with tf.Graph().as_default():
+        dir = os.path.join(dir,"rnet")
+        if not os.path.exists(dir):
+            os.mkdir(dir)
         data = tf.placeholder(tf.float32, (1,24,24,3), 'input')
         with tf.variable_scope('rnet'):
             onet = df.RNetMovidius({'data':data})
-        with tf.variable_scope('rnet',reuse=tf.AUTO_REUSE):
-            onet.load(os.path.join('align', 'det2.npy'), sess)
-        #sess.run(tf.global_variables_initializer())
-        #sess.run(tf.local_variables_initializer())
-        saver = tf.train.Saver()
-        saver.save(sess, os.path.join(dir,'rnet'))
-        cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/proxy -o movidius/rnet.graph'
-        print(cmd)
+        saver = tf.train.Saver(tf.global_variables())
+        with tf.Session() as  sess:
+            sess.run(tf.global_variables_initializer())
+            sess.run(tf.local_variables_initializer())
+            with tf.variable_scope('rnet',reuse=tf.AUTO_REUSE):
+                onet.load(os.path.join('align', 'det2.npy'), sess)
+
+            saver.save(sess, os.path.join(dir,'rnet'))
+            cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/proxy -o movidius/rnet.graph'
+            print(cmd)
 
 def conver_pnet(dir,scale,h,w):
     dir = os.path.join(dir,"pnet",scale)
@@ -102,7 +104,7 @@ def main():
     if not os.path.exists(dir):
         os.mkdir(dir)
     #preper_pnet(dir)
-    conver_onet(dir)
+    #conver_onet(dir)
     conver_rnet(dir)
 
 if __name__ == "__main__":
