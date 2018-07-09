@@ -586,7 +586,7 @@ def movidius_detect_face1(img, pnet, rnet, onet, threshold,minsize=20,factor = 0
         factor_count += 1
         hs=int(np.ceil(h*scale))
         ws=int(np.ceil(w*scale))
-        print("Scale {} {}x{}".fromat(scale,hs,ws))
+        print("Scale {} {}x{}".format(scale,hs,ws))
 
 
 
