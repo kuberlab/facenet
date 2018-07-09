@@ -77,7 +77,7 @@ def main():
 
     print('Load RNET')
 
-    with open('movidius/pnet-29x38.graph', mode='rb') as f:
+    with open('movidius/pnet-28x38.graph', mode='rb') as f:
         pgraphFileBuff = f.read()
     pnetGraph = mvnc.Graph("PNet Graph")
     pnetIn, pnetOut = pnetGraph.allocate_with_fifos(device, pgraphFileBuff)
