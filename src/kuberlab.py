@@ -18,6 +18,12 @@ def get_parser():
         default=None,
         help='Image',
     )
+    parser.add_argument(
+        '--factor',
+        type=float,
+        default=0.709,
+        help='Factor',
+    )
     return parser
 
 
@@ -134,7 +140,7 @@ def main():
 
             if (frame_count % frame_interval) == 0:
 
-                bounding_boxes, _ = detect_face.movidius_detect_face(frame,pnet, rnet, onet,threshold)
+                bounding_boxes, _ = detect_face.movidius_detect_face1(frame,pnet, rnet, onet,threshold,factor=args.factor)
 
 
                 # Check our current fps
