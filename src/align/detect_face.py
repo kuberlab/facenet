@@ -386,11 +386,11 @@ def create_movidius_mtcnn(sess, model_path,movidius_rnet,movidius_onet):
         pnet = PNet({'data':data})
         pnet.load(os.path.join(model_path, 'det1.npy'), sess)
     with tf.variable_scope('rnet'):
-        data = tf.placeholder(tf.float32, (1,128), 'input')
+        data = tf.placeholder(tf.float32, (None,128), 'input')
         rnet = RNetMovidiusInference({'data':data})
         rnet.load(os.path.join(model_path, 'det2.npy'), sess,ignore_missing=True)
     with tf.variable_scope('onet'):
-        data = tf.placeholder(tf.float32, (1,256), 'input')
+        data = tf.placeholder(tf.float32, (None,256), 'input')
         onet = ONetMovidiusInference({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess,ignore_missing=True)
 
@@ -399,16 +399,19 @@ def create_movidius_mtcnn(sess, model_path,movidius_rnet,movidius_onet):
     onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     def _rnet_fun(img):
         print("To rnet")
-        print(img.shape)
-        out = movidius_rnet(img)
-        out = out.reshape((1,128))
-        return rnet_fun_1(out)
+        outs = []
+        for i in img:
+            out = movidius_rnet(i)
+            outs.append(out)
+        return rnet_fun_1(np.stack(outs))
     def _onet_fun(img):
         print("To onet")
         print(img.shape)
-        out = movidius_onet(img)
-        out = out.reshape((1,256))
-        return onet_fun_1(out)
+        outs = []
+        for i in img:
+            out = movidius_onet(i)
+            outs.append(out)
+        return onet_fun_1(np.stack(outs))
     return pnet_fun, _rnet_fun, _onet_fun
 
 def create_mtcnn(sess, model_path):
