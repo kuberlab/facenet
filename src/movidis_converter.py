@@ -9,18 +9,25 @@ def conver_onet(dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
     tf.reset_default_graph()
-    with tf.Session() as  sess:
-        data = tf.placeholder(tf.float32, (1,48,48,3), 'input')
-        with tf.variable_scope('onet'):
-            onet = df.ONetMovidius({'data':data})
-        with tf.variable_scope('onet',reuse=tf.AUTO_REUSE):
-            onet.load(os.path.join('align', 'det3.npy'), sess)
-        #sess.run(tf.global_variables_initializer())
-        #sess.run(tf.local_variables_initializer())
-        saver = tf.train.Saver()
-        saver.save(sess, os.path.join(dir,'onet'))
-        cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/proxy -o movidius/onet.graph'
-        print(cmd)
+    with tf.Graph().as_default() as graph:
+        with tf.Session() as  sess:
+            data = tf.placeholder(tf.float32, (1,48,48,3), 'input')
+            with tf.variable_scope('onet'):
+                onet = df.ONetMovidius({'data':data})
+            with tf.variable_scope('onet',reuse=tf.AUTO_REUSE):
+                onet.load(os.path.join('align', 'det3.npy'), sess)
+            onet_output0 = graph.get_tensor_by_name('rnet/conv6-1/conv6-1:0')
+            onet_output1 = graph.get_tensor_by_name('rnet/conv6-2/conv6-2:0')
+            onet_output2 = graph.get_tensor_by_name('rnet/conv6-3/conv6-3:0')
+            onet_output01 = tf.reshape(onet_output0,[1,1,1,2])
+            onet_output11 = tf.reshape(onet_output1,[1,1,1,4])
+            onet_output21 = tf.reshape(onet_output2,[1,1,1,10])
+            rnet_output = tf.concat([onet_output01, onet_output11,onet_output21],-1, name = 'rnet/output0')
+            tf.nn.max_pool(rnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='rnet/output')
+            saver = tf.train.Saver()
+            saver.save(sess, os.path.join(dir,'onet'))
+            cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/proxy -o movidius/onet.graph'
+            print(cmd)
 
 def conver_rnet(dir):
     tf.reset_default_graph()
