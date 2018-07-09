@@ -178,8 +178,7 @@ class Network(object):
                 nodea = tf.nn.relu(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
                 nodeb = tf.nn.relu(tf.multiply(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),-1.0))
                 q = tf.multiply(alpha,-1.0)
-                #nodec = tf.multiply(tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),q)
-                nodec = nodeb
+                nodec = tf.multiply(tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),q)
             output = tf.add(nodec, nodea)
 
         return output
