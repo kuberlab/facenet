@@ -403,6 +403,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_rnet,movidius_onet):
             i = i.astype(np.float32)
             print("To rnet {}".format(i.shape))
             out = movidius_rnet(i)
+            print("From rnet {}".format(out.shape))
             outs.append(out)
         return rnet_fun_1(np.stack(outs))
     def _onet_fun(img):
