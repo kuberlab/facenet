@@ -173,21 +173,15 @@ class Network(object):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
-            #alpha = tf.reshape(alpha,[1,i])
-            neg = np.zeros((i))
-            for k in range(i):
-                neg[k] = -1.
-            neg = neg.astype(np.float32)
-            neg = tf.constant(neg)
             if (len(inp.get_shape()) == 2):
                 nodea = tf.nn.relu(inp)
-                nodeb = tf.nn.relu(tf.multiply(neg, inp))
-                q = tf.multiply(neg,alpha)
+                nodeb = tf.nn.relu(tf.multiply(inp,-1.0))
+                q = tf.multiply(-1.0,alpha)
                 nodec = tf.multiply(nodeb,q)
             else:
                 nodea = tf.nn.relu(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
-                nodeb = tf.nn.relu(tf.multiply(neg, tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
-                q = tf.multiply(neg,alpha)
+                nodeb = tf.nn.relu(tf.multiply(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),-1.0))
+                q = tf.multiply(-1.0,alpha)
                 nodec = tf.multiply(tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),q)
             output = tf.add(nodec, nodea)
 
@@ -396,7 +390,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
     rnet_fun_1 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
     onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     def _pnet_fun(img):
-        img0 = img.astype(np.float16)
+        img0 = img.astype(np.float32)
         print("To pnet {}".format(img.shape))
         out = movidius_pnet(img0)
         print("From pnet {}".format(out.shape))
