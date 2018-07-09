@@ -91,7 +91,9 @@ class Network(object):
                 for param_name, data in iteritems(data_dict[op_name]):
                     try:
                         var = tf.get_variable(param_name)
-                        print('load {} <-> {}'.format(op_name,var))
+                        print('load {} <-> {}'.format(param_name,var))
+                        if 'alpha' in param_name:
+                            print(data)
                         session.run(var.assign(data))
                     except ValueError:
                         if not ignore_missing:
