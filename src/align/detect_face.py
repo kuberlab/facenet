@@ -398,9 +398,9 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnets,movidius_rnet,movidius
         out2 = out[:,:,:,2:]
         return out2,pnet_fun_1(out1)
     for p in movidius_pnets:
-        p1 = (p)
-        f = (lambda img: _pnet_fun(img,p1[0],p1[1],p1[2]))
-        pnets.append((f,p1[1],p1[2]))
+        def _executor(p1):
+            return lambda img: _pnet_fun(img,p1[0],p1[1],p1[2])
+        pnets.append((_executor(p),p[1],p[2]))
     def _rnet_fun(img):
         outs1 = []
         outs2 = []
