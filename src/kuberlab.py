@@ -98,7 +98,7 @@ class PNetHandler(object):
         self.pnetGraph.destroy()
 
     def proxy(self):
-        f = lambda x: _mvc_exec(x,self.h,self.w,self.pnetGraph,self.pnetIn,self.pnetOut)
+        f = (lambda x: _mvc_exec(x,self.h,self.w,self.pnetGraph,self.pnetIn,self.pnetOut))
         return (f,self.h,self.w)
 
 def main():
