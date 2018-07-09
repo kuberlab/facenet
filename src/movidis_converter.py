@@ -15,8 +15,8 @@ def conver_onet(dir):
             onet = df.ONetMovidius({'data':data})
         with tf.variable_scope('onet',reuse=tf.AUTO_REUSE):
             onet.load(os.path.join('align', 'det3.npy'), sess)
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.local_variables_initializer())
+        #sess.run(tf.global_variables_initializer())
+        #sess.run(tf.local_variables_initializer())
         saver = tf.train.Saver()
         saver.save(sess, os.path.join(dir,'onet'))
         cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/proxy -o movidius/onet.graph'
