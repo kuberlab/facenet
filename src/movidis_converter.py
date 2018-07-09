@@ -26,7 +26,7 @@ def conver_onet(dir):
             tf.nn.max_pool(rnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='onet/output')
             saver = tf.train.Saver()
             saver.save(sess, os.path.join(dir,'onet'))
-            cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/proxy -o movidius/onet.graph'
+            cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/output -o movidius/onet.graph'
             print(cmd)
 
 def conver_rnet(dir):
@@ -55,36 +55,34 @@ def conver_rnet(dir):
                 onet.load(os.path.join('align', 'det2.npy'), sess)
 
             saver.save(sess, os.path.join(dir,'rnet'))
-            cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/proxy -o movidius/rnet.graph'
+            cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/output -o movidius/rnet.graph'
             print(cmd)
 
-def conver_pnet(dir,scale,h,w):
-    dir = os.path.join(dir,"pnet",scale)
+def conver_pnet(dir,h,w):
+    dir = os.path.join(dir,'pnet-{}x{}'.format(h,w))
     if not os.path.exists(dir):
         os.mkdir(dir)
     tf.reset_default_graph()
-    with tf.Session() as  sess:
+    with tf.Graph().as_default() as graph:
         data = tf.placeholder(tf.float32, (1,h,w,3), 'input')
         with tf.variable_scope('pnet'):
             pnet = df.PNetMovidius({'data':data})
-        with tf.variable_scope('pnet',reuse=tf.AUTO_REUSE):
-            pnet.load(os.path.join('align', 'det1.npy'), sess)
-        o1 = tf.get_default_graph().get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
-        o2 = tf.get_default_graph().get_tensor_by_name('pnet/conv4-1/BiasAdd:0')
-        #o1 = tf.reshape(o1,[1,1,1,(int(h/2)-5)*(int(w/2)-5)*4])
-        #o2 = tf.reshape(o2,[1,1,1,(int(h/2)-5)*(int(w/2)-5)*2])
-        #o3 = tf.pad(o1, [[0, 0],[0, 0], [0, 0], [0, 2]])
-        #o1 = tf.pad(o1, [[0,1]])
-        #o2 = tf.pad(o2, [[1,0]])
-        #o = tf.concat([o1,o2],axis=3,name='proxy')
-        #proxy= tf.nn.max_pool(o,ksize=[1, 1, 1, 1],strides=[1, 1, 1, 1], padding='SAME', name='proxy')
-        #o = tf.concat([o1,o2], 3)
-        #o = tf.multiply(o,1,name='output')
-        #tf.identity(o,name='output')
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.local_variables_initializer())
-        saver = tf.train.Saver()
-        saver.save(sess, os.path.join(dir,'pnet'))
+        pnet_output0 = graph.get_tensor_by_name('pnet/conv4-1/BiasAdd:0')
+        pnet_output1 = graph.get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
+        pnet_output = tf.concat([pnet_output0, pnet_output1],-1, name = 'pnet/output0')
+        tf.nn.max_pool(pnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='pnet/output')
+        for f in tf.global_variables():
+            print(f)
+        saver = tf.train.Saver(tf.global_variables())
+        with tf.Session() as  sess:
+            sess.run(tf.global_variables_initializer())
+            sess.run(tf.local_variables_initializer())
+            with tf.variable_scope('pnet',reuse=tf.AUTO_REUSE):
+                pnet.load(os.path.join('align', 'det1.npy'), sess)
+
+            saver.save(sess, os.path.join(dir,'pnet'))
+            cmd = 'mvNCCompile movidius/pnet/pnet.meta -in input -on pnet/output -o movidius/rnet.graph'
+            print(cmd)
 
 
 def preper_pnet(dir):
@@ -122,6 +120,7 @@ def main():
     #preper_pnet(dir)
     conver_onet(dir)
     conver_rnet(dir)
+    conver_pnet(dir,28,38)
 
 if __name__ == "__main__":
     main()

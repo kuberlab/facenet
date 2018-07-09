@@ -241,38 +241,7 @@ class Network(object):
         #tf.identity(target,'fake_prob')
         #return tf.nn.softmax(target,axis=axis,name=name)
 
-class PNetMovidius(Network):
-    def __init__(self, inputs, trainable=True):
-        super(PNetMovidius, self).__init__(inputs, trainable)
-        self.proxy = None
 
-    def join(self):
-        s = self.layers['PReLU3']
-        tf.identity(s,name='mprelu')
-        o1 = self.layers['conv4-1']
-        o2 = self.layers['conv4-2']
-        #o3 = tf.pad(o1, [[0, 0],[0, 0], [0, 0], [4, 0]],name='proxy_pad1')
-        #o4 = tf.pad(o2, [[0, 0],[0, 0], [0, 0], [0, 2]],name='proxy_pad2')
-        o = tf.concat([o1,o2],axis=3,name='proxy_add1')
-        #bias = tf.get_variable('proxy_bias1',[6], trainable=True)
-        #self.proxy = tf.nn.bias_add(o,bias,name='proxy')
-        self.proxy = tf.multiply(o,1,name='proxy')
-
-    def setup(self):
-        (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
-         .conv(3, 3, 10, 1, 1, padding='VALID', relu=False, name='conv1')
-         .prelu(name='PReLU1')
-         .max_pool(2, 2, 2, 2, name='pool1')
-         .conv(3, 3, 16, 1, 1, padding='VALID', relu=False, name='conv2')
-         .prelu(name='PReLU2')
-         .conv(3, 3, 32, 1, 1, padding='VALID', relu=False, name='conv3')
-         .prelu(name='PReLU3')
-         .conv(1, 1, 2, 1, 1, relu=False, name='conv4-1'))
-
-        (self.feed('PReLU3') #pylint: disable=no-value-for-parameter
-         .conv(1, 1, 4, 1, 1, relu=False, name='conv4-2'))
-
-        (self.join())
 
 class PNet(Network):
     def setup(self):
@@ -289,7 +258,22 @@ class PNet(Network):
 
         (self.feed('PReLU3') #pylint: disable=no-value-for-parameter
              .conv(1, 1, 4, 1, 1, relu=False, name='conv4-2'))
-        
+
+class PNetMovidius(Network):
+    def setup(self):
+        (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
+         .conv(3, 3, 10, 1, 1, padding='VALID', relu=False, name='conv1')
+         .prelu(name='PReLU1')
+         .max_pool(2, 2, 2, 2, name='pool1')
+         .conv(3, 3, 16, 1, 1, padding='VALID', relu=False, name='conv2')
+         .prelu(name='PReLU2')
+         .conv(3, 3, 32, 1, 1, padding='VALID', relu=False, name='conv3')
+         .prelu(name='PReLU3')
+         .conv(1, 1, 2, 1, 1, relu=False, name='conv4-1'))
+
+        (self.feed('PReLU3') #pylint: disable=no-value-for-parameter
+         .conv(1, 1, 4, 1, 1, relu=False, name='conv4-2'))
+
 class RNet(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
