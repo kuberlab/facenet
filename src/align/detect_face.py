@@ -391,7 +391,9 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnets,movidius_rnet,movidius
     def _pnet_fun(img,mpfun,h,w):
         img0 = img.astype(np.float32)
         out = mpfun(img0)
-        out = out.reshape((1,int(w/2)-5,int(h/2)-5,6))
+        ho = (h - 9) >> 1
+        wo = (w - 9) >> 1
+        out = out.reshape((1,wo,ho,6))
         out1 = out[:,:,:,0:2]
         out2 = out[:,:,:,2:]
         return out2,pnet_fun_1(out1)
