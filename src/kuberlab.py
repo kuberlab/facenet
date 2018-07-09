@@ -130,10 +130,10 @@ def main():
             else:
                 frame = cv2.imread(args.image).astype(np.float32)
             #frame = cv2.resize(frame, (320, 320),interpolation=cv2.INTER_AREA)
-
+            frame = cv2.resize(frame, (128, 96))
 
             if (frame_count % frame_interval) == 0:
-                frame = cv2.resize(frame, (128, 96))
+
                 bounding_boxes, _ = detect_face.movidius_detect_face(frame,pnet, rnet, onet,threshold)
 
 
