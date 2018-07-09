@@ -86,6 +86,7 @@ class Network(object):
         data_dict = np.load(data_path, encoding='latin1').item() #pylint: disable=no-member
 
         for op_name in data_dict:
+            print('load {}'.format(op_name))
             with tf.variable_scope(op_name, reuse=True):
                 for param_name, data in iteritems(data_dict[op_name]):
                     try:
