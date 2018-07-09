@@ -170,7 +170,7 @@ class Network(object):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
-            output = tf.nn.relu(inp) + tf.multiply(tf.multiply(tf.nn.relu(tf.multiply(inp,-1)),-1),alpha)
+            output = tf.nn.relu(inp) + tf.multiply(tf.multiply(tf.nn.relu(tf.multiply(inp,-1.0)),-1.0),alpha)
         if proxy_name is not None:
             tf.identity(output,name='proxy')
         return output

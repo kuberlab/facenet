@@ -31,6 +31,8 @@ def conver_rnet(dir):
         data = tf.placeholder(tf.float32, (1,24,24,3), 'input')
         with tf.variable_scope('rnet'):
             onet = df.RNetMovidius({'data':data})
+        for f in tf.global_variables():
+            print(f)
         saver = tf.train.Saver(tf.global_variables())
         with tf.Session() as  sess:
             sess.run(tf.global_variables_initializer())
