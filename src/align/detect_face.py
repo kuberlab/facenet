@@ -173,14 +173,21 @@ class Network(object):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
-            #output = tf.nn.relu(inp) + tf.multiply(alpha, -tf.nn.relu(-inp))
-            o1 = inp*-1.0
-            o2 = tf.nn.relu(o1)
-            o3 = o2*-1.0
-            o4 = tf.multiply(o3,alpha)
-            o0 = tf.nn.relu(inp)
-           # output = tf.add(tf.nn.relu(inp),o4)
-            output = tf.add(o0,o4)
+            alpha = self.make_var('alpha', shape=(i,))
+            neg = np.zeros((i))
+            for k in range(i):
+                neg[k] = -1.
+            neg = neg.astype(np.float32)
+            neg = tf.constant(neg)
+            if (len(inp.get_shape()) == 2):
+                nodea = tf.nn.relu(inp)
+                nodeb = tf.nn.relu(tf.multiply(neg, inp))
+                nodec = tf.multiply(tf.multiply(neg, nodeb),alpha)
+            else:
+                nodea = tf.nn.relu(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
+                nodeb = tf.nn.relu(tf.multiply(neg, tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
+                nodec = tf.multiply(tf.multiply(neg, tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')),alpha)
+            output = tf.add(nodec, nodea)
         if proxy_name is not None:
             tf.identity(output,name='proxy')
         return output
