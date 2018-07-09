@@ -221,6 +221,7 @@ class Network(object):
             biases = self.make_var('biases', [num_out])
             op = tf.nn.relu_layer if relu else tf.nn.xw_plus_b
             fc = op(feed_in, weights, biases, name=name)
+            print('name {}: {}',name,fc)
             return fc
 
 
