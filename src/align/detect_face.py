@@ -169,16 +169,21 @@ class Network(object):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
+            neg = np.zeros((i))
+            for k in range(i):
+                neg[k] = -1.
+            neg = neg.astype(np.float32)
+            neg = tf.constant(neg)
             if (len(inp.get_shape()) == 2):
                 nodea = tf.nn.relu(inp)
-                nodeb = tf.nn.relu(tf.multiply(inp,-1.0))
-                q = tf.multiply(alpha,-1.0)
-                nodec = tf.multiply(nodeb,q)
+                nodeb = tf.nn.relu(tf.multiply(neg,inp))
+                q = tf.multiply(neg,alpha)
+                nodec = tf.multiply(q,nodeb)
             else:
                 nodea = tf.nn.relu(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
-                nodeb = tf.nn.relu(tf.multiply(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),-1.0))
-                q = tf.multiply(alpha,-1.0)
-                nodec = tf.multiply(tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),q)
+                nodeb = tf.nn.relu(tf.multiply(neg,tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
+                q = tf.multiply(neg,alpha)
+                nodec = tf.multiply(q,tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
             output = tf.add(nodec, nodea)
 
         return output
