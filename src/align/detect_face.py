@@ -398,17 +398,18 @@ def create_movidius_mtcnn(sess, model_path,movidius_rnet,movidius_onet):
     rnet_fun_1 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
     onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     def _rnet_fun(img):
-        print("To rnet")
         outs = []
         for i in img:
+            i = i.astype(np.float32)
+            print("To rnet {}".format(i.shape))
             out = movidius_rnet(i)
             outs.append(out)
         return rnet_fun_1(np.stack(outs))
     def _onet_fun(img):
-        print("To onet")
-        print(img.shape)
         outs = []
         for i in img:
+            i = i.astype(np.float32)
+            print("To onet {}".format(i.shape))
             out = movidius_onet(i)
             outs.append(out)
         return onet_fun_1(np.stack(outs))
