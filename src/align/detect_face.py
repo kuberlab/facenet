@@ -475,9 +475,12 @@ def movidius_detect_face(img, pnet, rnet, onet, threshold):
         img_y = np.transpose(img_x, (0,2,1,3))
 
         out = pnet(img_y)
-        out0 = np.transpose(out[0], (0,2,1,3))
-        out1 = np.transpose(out[1], (0,2,1,3))
-        out2 = np.transpose(out[1], (0,2,1,3))
+        #out0 = np.transpose(out[0], (0,2,1,3))
+        #out1 = np.transpose(out[1], (0,2,1,3))
+        #out2 = np.transpose(out[1], (0,2,1,3))
+        out0 = out[0]
+        out1 = out[1]
+        out2 = out[2]
 
         print('Out0 {}'.format(out0))
         #print('Out2 {}'.format(out2))
