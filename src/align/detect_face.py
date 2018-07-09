@@ -190,6 +190,7 @@ class Network(object):
             if proxy_name is not None:
                 ind = tf.identity(inp,name=proxy_name)
                 print(inp)
+                print(output)
         return output
 
     @layer
