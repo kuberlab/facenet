@@ -390,7 +390,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
     pnet_fun_1 = lambda img : sess.run(('pnet/prob1:0'), feed_dict={'pnet/input:0':img})
     rnet_fun_1 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
     onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
-    def _pnet_fun_1(img):
+    def _pnet_fun(img):
         img0 = img.astype(np.float32)
         print("To pnet {}".format(img.shape))
         out = movidius_pnet(img0)
@@ -398,7 +398,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
         out = out.reshape((1,14,9,6))
         out1 = out[:,:,:,0:2]
         out2 = out[:,:,:,2:]
-        return out2,pnet_fun_1(out1),out1
+        return out2,pnet_fun_1(out1)
     def _rnet_fun(img):
         outs1 = []
         outs2 = []
@@ -429,7 +429,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
             outs2.append(out2)
             outs3.append(out3)
         return np.stack(outs2),np.stack(outs3),onet_fun_1(np.stack(outs1))
-    return _pnet_fun_1, rnet_fun_1, onet_fun_1
+    return _pnet_fun, rnet_fun_1, onet_fun_1
 
 def create_mtcnn(sess, model_path):
     if not model_path:
@@ -456,7 +456,6 @@ def create_mtcnn(sess, model_path):
 def movidius_detect_face(img, pnet, rnet, onet, threshold):
     h=img.shape[0]
     w=img.shape[1]
-
     total_boxes=np.empty((0,9))
     points=np.empty(0)
 
