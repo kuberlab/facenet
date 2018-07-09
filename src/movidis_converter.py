@@ -26,8 +26,9 @@ def conver_onet(dir):
             tf.nn.max_pool(rnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='onet/output')
             saver = tf.train.Saver()
             saver.save(sess, os.path.join(dir,'onet'))
-            cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/output -o movidius/onet.graph'
+            cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/output -o movidius/onet.graph -s 12'
             print(cmd)
+            subprocess.call(cmd, shell=True)
 
 def conver_rnet(dir):
     tf.reset_default_graph()
@@ -45,8 +46,6 @@ def conver_rnet(dir):
         rnet_output3 = tf.reshape(rnet_output1,[1,1,1,4])
         rnet_output = tf.concat([rnet_output2, rnet_output3],-1, name = 'rnet/output0')
         tf.nn.max_pool(rnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='rnet/output')
-        for f in tf.global_variables():
-            print(f)
         saver = tf.train.Saver(tf.global_variables())
         with tf.Session() as  sess:
             sess.run(tf.global_variables_initializer())
@@ -55,8 +54,9 @@ def conver_rnet(dir):
                 onet.load(os.path.join('align', 'det2.npy'), sess)
 
             saver.save(sess, os.path.join(dir,'rnet'))
-            cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/output -o movidius/rnet.graph'
+            cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/output -o movidius/rnet.graph -s 12'
             print(cmd)
+            subprocess.call(cmd, shell=True)
 
 def conver_pnet(dir,h,w):
     dir = os.path.join(dir,'pnet-{}x{}'.format(h,w))
@@ -71,8 +71,6 @@ def conver_pnet(dir,h,w):
         pnet_output1 = graph.get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
         pnet_output = tf.concat([pnet_output0, pnet_output1],-1, name = 'pnet/output0')
         tf.nn.max_pool(pnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='pnet/output')
-        for f in tf.global_variables():
-            print(f)
         saver = tf.train.Saver(tf.global_variables())
         with tf.Session() as  sess:
             sess.run(tf.global_variables_initializer())
@@ -81,17 +79,18 @@ def conver_pnet(dir,h,w):
                 pnet.load(os.path.join('align', 'det1.npy'), sess)
 
             saver.save(sess, os.path.join(dir,'pnet'))
-            cmd = 'mvNCCompile movidius/pnet/pnet.meta -in input -on pnet/output -o movidius/rnet.graph'
+            cmd = 'mvNCCompile {}/pnet.meta -in input -on pnet/output -o movidius/pnet-{}x{}.graph -s 12'.format(dir,h,w)
             print(cmd)
+            subprocess.call(cmd, shell=True)
+
 
 
 def preper_pnet(dir):
     minsize = 20  # minimum size of face
-    threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
     factor_count=0
-    h=300
-    w=400
+    h=480
+    w=680
     minl=np.amin([h, w])
     m=12.0/minsize
     minl=minl*m
@@ -104,14 +103,7 @@ def preper_pnet(dir):
     for scale in scales:
         hs=int(np.ceil(h*scale))
         ws=int(np.ceil(w*scale))
-        name = '{}x{}'.format(hs,ws)
-        print("-----------------------")
-        conver_pnet(dir,name,hs,ws)
-        cmd = 'mvNCCompile movidius/pnet/{}/pnet.meta -in input -on output -o movidius/pnet-{}.graph'.format(name,name)
-        #out = subprocess.check_output(cmd, shell = True)
-        print(cmd)
-        print("-----------------------")
-        break
+        conver_pnet(dir,hs,ws)
 
 def main():
     dir = 'movidius'
@@ -120,7 +112,7 @@ def main():
     #preper_pnet(dir)
     conver_onet(dir)
     conver_rnet(dir)
-    conver_pnet(dir,28,38)
+    preper_pnet(dir)
 
 if __name__ == "__main__":
     main()

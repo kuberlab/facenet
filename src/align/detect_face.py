@@ -367,42 +367,37 @@ class ONetMovidius(Network):
          .fc(10, relu=False, name='conv6-3'))
 
 
-def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_onet):
+def create_movidius_mtcnn(sess, model_path,movidius_pnets,movidius_rnet,movidius_onet):
     if not model_path:
         model_path,_ = os.path.split(os.path.realpath(__file__))
 
     with tf.variable_scope('pnet'):
-        #data = tf.placeholder(tf.float32, (None,None,None,2), 'input')
-        data = tf.placeholder(tf.float32, (None,None,None,3), 'input')
-        #pnet = PNetMovidiusInference({'data':data})
-        pnet = PNet({'data':data})
+        data = tf.placeholder(tf.float32, (None,None,None,2), 'input')
+        pnet = PNetMovidiusInference({'data':data})
         pnet.load(os.path.join(model_path, 'det1.npy'), sess,ignore_missing=True)
     with tf.variable_scope('rnet'):
         data = tf.placeholder(tf.float32, (None,2), 'input')
-        #data = tf.placeholder(tf.float32, (None,24,24,3), 'input')
         rnet = RNetMovidiusInference({'data':data})
-        #rnet = RNet({'data':data})
         rnet.load(os.path.join(model_path, 'det2.npy'), sess,ignore_missing=True)
     with tf.variable_scope('onet'):
-        #data = tf.placeholder(tf.float32, (None,48,48,3), 'input')
         data = tf.placeholder(tf.float32, (None,2), 'input')
-        #onet = ONet({'data':data})
         onet = ONetMovidiusInference({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess,ignore_missing=True)
 
-    pnet_fun_1 = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0','pnet/prob1:0'), feed_dict={'pnet/input:0':img})
-    #pnet_fun_1 = lambda img : sess.run(('pnet/prob1:0'), feed_dict={'pnet/input:0':img})
-    #rnet_fun_1 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+    pnet_fun_1 = lambda img : sess.run(('pnet/prob1:0'), feed_dict={'pnet/input:0':img})
     rnet_fun_1 = lambda img : sess.run(('rnet/prob1:0'), feed_dict={'rnet/input:0':img})
-    #onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     onet_fun_1 = lambda img : sess.run(('onet/prob1:0'), feed_dict={'onet/input:0':img})
-    def _pnet_fun(img):
+    pnets = []
+    def _pnet_fun(img,mpfun,h,w):
         img0 = img.astype(np.float32)
-        out = movidius_pnet(img0)
-        out = out.reshape((1,14,9,6))
+        out = mpfun(img0)
+        out = out.reshape((1,int(w/2)-5,int(h/2)-5,6))
         out1 = out[:,:,:,0:2]
         out2 = out[:,:,:,2:]
         return out2,pnet_fun_1(out1)
+    for p in movidius_pnets:
+        f = lambda img: _pnet_fun(img,p[0],p[1],p[2])
+        pnets.append((f,p[1],p[2]))
     def _rnet_fun(img):
         outs1 = []
         outs2 = []
@@ -430,7 +425,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
             outs2.append(out2)
             outs3.append(out3)
         return np.stack(outs2),np.stack(outs3),onet_fun_1(np.stack(outs1))
-    return pnet_fun_1, _rnet_fun, _onet_fun
+    return pnets, _rnet_fun, _onet_fun
 
 def create_mtcnn(sess, model_path):
     if not model_path:
@@ -454,27 +449,24 @@ def create_mtcnn(sess, model_path):
     onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     return pnet_fun, rnet_fun, onet_fun
 
-def movidius_detect_face(img, pnet, rnet, onet, threshold):
+def movidius_detect_face(img, pnets, rnet, onet, threshold):
     h=img.shape[0]
     w=img.shape[1]
     total_boxes=np.empty((0,9))
     points=np.empty(0)
 
-    hs = 28
-    ws = 38
-    # create scale pyramid
-    scales=[float(ws)/img.shape[1]]
-
-
-
     # first stage
-    for scale in scales:
+    for pnet in pnets:
+        hs = pnet[1]
+        ws = pnet[2]
+        pnet_fun = pnet[0]
+        scale = float(ws)/img.shape[1]
         im_data = imresample(img, (hs, ws))
         im_data = (im_data-127.5)*0.0078125
         img_x = np.expand_dims(im_data, 0)
         img_y = np.transpose(img_x, (0,2,1,3))
 
-        out = pnet(img_y)
+        out = pnet_fun(img_y)
         out0 = np.transpose(out[0], (0,2,1,3))
         out1 = np.transpose(out[1], (0,2,1,3))
 

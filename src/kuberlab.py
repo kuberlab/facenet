@@ -24,6 +24,12 @@ def get_parser():
         default=0.709,
         help='Factor',
     )
+    parser.add_argument(
+        '--resolutions',
+        type=str,
+        default="205x290,37x52",
+        help='PNET resolutions',
+    )
     return parser
 
 
@@ -46,6 +52,14 @@ def add_overlays(frame, boxes, frame_rate):
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
                 thickness=2, lineType=2)
 
+def parse_resolutions(v):
+    res = []
+    for r in v.split(','):
+        hw = r.split('x')
+        if len(hw)==2:
+            res.append((int(hw[0]),int(hw[1])))
+    return res
+
 def get_images(image, bounding_boxes):
     face_crop_size=160
     face_crop_margin=32
@@ -62,6 +76,27 @@ def get_images(image, bounding_boxes):
         image = misc.imresize(cropped, (face_crop_size, face_crop_size), interp='bilinear')
         images.append(image)
     return images
+
+class PNetHandler(object):
+    def __init__(self,device,h,w):
+        with open('movidius/pnet-{}x{}.graph'.format(h,w), mode='rb') as f:
+            graphFileBuff = f.read()
+        self.pnetGraph = mvnc.Graph('PNet Graph {}x{}'.format(h,w))
+        self.pnetIn,self.pnetOut = self.pnetGraph.allocate_with_fifos(device, graphFileBuff)
+        self.h = h
+        self.w = w
+
+    def destroy(self):
+        self.pnetIn.destroy()
+        self.pnetOut.destroy()
+        self.pnetGraph.destroy()
+
+    def proxy(self):
+        def _exec(img):
+            self.pnetGraph.queue_inference_with_fifo_elem(self.pnetIn, self.pnetOut, img, 'pnet')
+            output, userobj = self.pnetOut.read_elem()
+            return output
+        return (_exec,self.h,self.w)
 
 def main():
     frame_interval = 3  # Number of frames after which to run face detection
@@ -81,22 +116,28 @@ def main():
     device.open()
 
 
-    print('Load RNET')
+    print('Load PNET')
 
-    with open('movidius/pnet-28x38.graph', mode='rb') as f:
-        pgraphFileBuff = f.read()
-    pnetGraph = mvnc.Graph("PNet Graph")
-    pnetIn, pnetOut = pnetGraph.allocate_with_fifos(device, pgraphFileBuff)
+    pnets = []
+    for r in parse_resolutions(args.resolutions):
+        p = PNetHandler(device,r[0],r[1])
+        pnets.append(p)
+
+    print('Load RNET')
 
     with open('movidius/rnet.graph', mode='rb') as f:
         rgraphFileBuff = f.read()
     rnetGraph = mvnc.Graph("RNet Graph")
     rnetIn, rnetOut = rnetGraph.allocate_with_fifos(device, rgraphFileBuff)
 
+    print('Load ONET')
+
     with open('movidius/onet.graph', mode='rb') as f:
         ographFileBuff = f.read()
     onetGraph = mvnc.Graph("ONet Graph")
     onetIn, onetOut = onetGraph.allocate_with_fifos(device, ographFileBuff)
+
+    print('Load FACENET')
 
     with open('facenet.graph', mode='rb') as f:
         fgraphFileBuff = f.read()
@@ -116,10 +157,9 @@ def main():
         fps = FPS().start()
     bounding_boxes = []
     with tf.Session() as  sess:
-        def _pnet_proxy(img):
-            pnetGraph.queue_inference_with_fifo_elem(pnetIn, pnetOut, img, 'pnet')
-            output, userobj = pnetOut.read_elem()
-            return output
+        pnets_proxy = []
+        for p in pnets:
+            pnets_proxy.append(p.proxy())
         def _rnet_proxy(img):
             rnetGraph.queue_inference_with_fifo_elem(rnetIn, rnetOut, img, 'rnet')
             output, userobj = rnetOut.read_elem()
@@ -128,20 +168,22 @@ def main():
             onetGraph.queue_inference_with_fifo_elem(onetIn, onetOut, img, 'onet')
             output, userobj = onetOut.read_elem()
             return output
-        pnet,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align',_pnet_proxy,_rnet_proxy,_onet_proxy)
+        pnets,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align',pnets_proxy,_rnet_proxy,_onet_proxy)
         while True:
             # Capture frame-by-frame
             if args.image is None:
                 frame = vs.read()
             else:
                 frame = cv2.imread(args.image).astype(np.float32)
-            #frame = cv2.resize(frame, (320, 320),interpolation=cv2.INTER_AREA)
-            #frame = cv2.resize(frame, (128, 96))
+
+            if (frame.shape[1]!=640) or (frame.shape[0]!=480):
+                frame = cv2.resize(frame, (640, 480))
+
             print("Frame {}".format(frame.shape))
 
             if (frame_count % frame_interval) == 0:
 
-                bounding_boxes, _ = detect_face.movidius_detect_face1(frame,pnet, rnet, onet,threshold,factor=args.factor)
+                bounding_boxes, _ = detect_face.movidius_detect_face(frame,pnets, rnet, onet,threshold)
 
 
                 # Check our current fps
@@ -187,9 +229,8 @@ def main():
     onetIn.destroy()
     onetOut.destroy()
     onetGraph.destroy()
-    pnetIn.destroy()
-    pnetOut.destroy()
-    pnetGraph.destroy()
+    for p in pnets:
+        p.destroy()
     device.close()
     print('Finished')
 
