@@ -259,6 +259,11 @@ class PNet(Network):
         (self.feed('PReLU3') #pylint: disable=no-value-for-parameter
              .conv(1, 1, 4, 1, 1, relu=False, name='conv4-2'))
 
+class PNetMovidiusInference(Network):
+    def setup(self):
+        (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
+         .softmax(3,name='prob1'))
+
 class PNetMovidius(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
@@ -314,11 +319,7 @@ class RNetMovidius(Network):
 class RNetMovidiusInference(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
-         .fc(2, relu=False, name='conv5-1')
          .softmax(1,name='prob1'))
-
-        (self.feed('data') #pylint: disable=no-value-for-parameter
-         .fc(4, relu=False, name='conv5-2'))
 
 class ONet(Network):
     def setup(self):
@@ -348,14 +349,7 @@ class ONet(Network):
 class ONetMovidiusInference(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
-         .fc(2, relu=False, name='conv6-1')
          .softmax(1, name='prob1'))
-
-        (self.feed('data') #pylint: disable=no-value-for-parameter
-         .fc(4, relu=False, name='conv6-2'))
-
-        (self.feed('data') #pylint: disable=no-value-for-parameter
-         .fc(10, relu=False, name='conv6-3'))
 
 class ONetMovidius(Network):
     def setup(self):
@@ -382,7 +376,7 @@ class ONetMovidius(Network):
          .fc(10, relu=False, name='conv6-3'))
 
 
-def create_movidius_mtcnn(sess, model_path,movidius_rnet,movidius_onet):
+def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_onet):
     if not model_path:
         model_path,_ = os.path.split(os.path.realpath(__file__))
 
@@ -399,27 +393,49 @@ def create_movidius_mtcnn(sess, model_path,movidius_rnet,movidius_onet):
         onet = ONetMovidiusInference({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess,ignore_missing=True)
 
-    pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
-    rnet_fun_1 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
-    onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    pnet_fun_1 = lambda img : sess.run(('pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+    rnet_fun_1 = lambda img : sess.run(('rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+    onet_fun_1 = lambda img : sess.run(('onet/prob1:0'), feed_dict={'onet/input:0':img})
+    def _pnet_fun(img):
+        img = img.astype(np.float32)
+        print("To pnet {}".format(img.shape))
+        out = movidius_pnet(img)
+        print("From pnet {}".format(out))
+        out = out.reshape((1,9,14,6))
+        out1 = out[:,:,:,0:2]
+        out2 = out[:,:,:,2:]
+        return pnet_fun_1(out1),out2
     def _rnet_fun(img):
-        outs = []
+        outs1 = []
+        outs2 = []
         for i in img:
             i = i.astype(np.float32)
             print("To rnet {}".format(i.shape))
             out = movidius_rnet(i)
             print("From rnet {}".format(out))
-            outs.append(out)
-        return rnet_fun_1(np.stack(outs))
+            out = out.reshape((1,1,6))
+            out1 = out[:,:,0:2]
+            out2 = out[:,:,2:]
+            outs1.append(out1)
+            outs2.append(out2)
+        return rnet_fun_1(np.stack(outs1)),np.stack(outs2)
     def _onet_fun(img):
-        outs = []
+        outs1 = []
+        outs2 = []
+        outs3 = []
         for i in img:
             i = i.astype(np.float32)
             print("To onet {}".format(i.shape))
             out = movidius_onet(i)
-            outs.append(out)
-        return onet_fun_1(np.stack(outs))
-    return pnet_fun, _rnet_fun, _onet_fun
+            out = out.reshape((1,1,16))
+            out1 = out[:,:,0:2]
+            out2 = out[:,:,2:7]
+            out3 = out[:,:,7:]
+            outs1.append(out1)
+            outs2.append(out2)
+            outs3.append(out3)
+        return onet_fun_1(np.stack(outs1)),np.stack(outs2),np.stack(outs3)
+    return _pnet_fun, _rnet_fun, _onet_fun
 
 def create_mtcnn(sess, model_path):
     if not model_path:
@@ -442,6 +458,114 @@ def create_mtcnn(sess, model_path):
     rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
     onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     return pnet_fun, rnet_fun, onet_fun
+
+def movidius_detect_face(img, pnet, rnet, onet, threshold):
+    total_boxes=np.empty((0,9))
+    points=np.empty(0)
+
+    hs = 28
+    ws = 38
+    # create scale pyramid
+    scales=[float(ws)/img.shape[1]]
+
+
+
+    # first stage
+    for scale in scales:
+        im_data = imresample(img, (hs, ws))
+        im_data = (im_data-127.5)*0.0078125
+        img_x = np.expand_dims(im_data, 0)
+        img_y = np.transpose(img_x, (0,2,1,3))
+        out = pnet(img_y)
+        out0 = np.transpose(out[0], (0,2,1,3))
+        out1 = np.transpose(out[1], (0,2,1,3))
+
+        boxes, _ = generateBoundingBox(out1[0,:,:,1].copy(), out0[0,:,:,:].copy(), scale, threshold[0])
+
+        # inter-scale nms
+        pick = nms(boxes.copy(), 0.5, 'Union')
+        if boxes.size>0 and pick.size>0:
+            boxes = boxes[pick,:]
+            total_boxes = np.append(total_boxes, boxes, axis=0)
+
+    numbox = total_boxes.shape[0]
+    if numbox>0:
+        pick = nms(total_boxes.copy(), 0.7, 'Union')
+        total_boxes = total_boxes[pick,:]
+        regw = total_boxes[:,2]-total_boxes[:,0]
+        regh = total_boxes[:,3]-total_boxes[:,1]
+        qq1 = total_boxes[:,0]+total_boxes[:,5]*regw
+        qq2 = total_boxes[:,1]+total_boxes[:,6]*regh
+        qq3 = total_boxes[:,2]+total_boxes[:,7]*regw
+        qq4 = total_boxes[:,3]+total_boxes[:,8]*regh
+        total_boxes = np.transpose(np.vstack([qq1, qq2, qq3, qq4, total_boxes[:,4]]))
+        total_boxes = rerec(total_boxes.copy())
+        total_boxes[:,0:4] = np.fix(total_boxes[:,0:4]).astype(np.int32)
+        dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph = pad(total_boxes.copy(), w, h)
+
+    numbox = total_boxes.shape[0]
+    if numbox>0:
+        # second stage
+        tempimg = np.zeros((24,24,3,numbox))
+        for k in range(0,numbox):
+            tmp = np.zeros((int(tmph[k]),int(tmpw[k]),3))
+            tmp[dy[k]-1:edy[k],dx[k]-1:edx[k],:] = img[y[k]-1:ey[k],x[k]-1:ex[k],:]
+            if tmp.shape[0]>0 and tmp.shape[1]>0 or tmp.shape[0]==0 and tmp.shape[1]==0:
+                tempimg[:,:,:,k] = imresample(tmp, (24, 24))
+            else:
+                return np.empty()
+        tempimg = (tempimg-127.5)*0.0078125
+        tempimg1 = np.transpose(tempimg, (3,1,0,2))
+        out = rnet(tempimg1)
+        out0 = np.transpose(out[0])
+        out1 = np.transpose(out[1])
+        score = out1[1,:]
+        ipass = np.where(score>threshold[1])
+        total_boxes = np.hstack([total_boxes[ipass[0],0:4].copy(), np.expand_dims(score[ipass].copy(),1)])
+        mv = out0[:,ipass[0]]
+        if total_boxes.shape[0]>0:
+            pick = nms(total_boxes, 0.7, 'Union')
+            total_boxes = total_boxes[pick,:]
+            total_boxes = bbreg(total_boxes.copy(), np.transpose(mv[:,pick]))
+            total_boxes = rerec(total_boxes.copy())
+
+    numbox = total_boxes.shape[0]
+    if numbox>0:
+        # third stage
+        total_boxes = np.fix(total_boxes).astype(np.int32)
+        dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph = pad(total_boxes.copy(), w, h)
+        tempimg = np.zeros((48,48,3,numbox))
+        for k in range(0,numbox):
+            tmp = np.zeros((int(tmph[k]),int(tmpw[k]),3))
+            tmp[dy[k]-1:edy[k],dx[k]-1:edx[k],:] = img[y[k]-1:ey[k],x[k]-1:ex[k],:]
+            if tmp.shape[0]>0 and tmp.shape[1]>0 or tmp.shape[0]==0 and tmp.shape[1]==0:
+                tempimg[:,:,:,k] = imresample(tmp, (48, 48))
+            else:
+                return np.empty()
+        tempimg = (tempimg-127.5)*0.0078125
+        tempimg1 = np.transpose(tempimg, (3,1,0,2))
+        out = onet(tempimg1)
+        out0 = np.transpose(out[0])
+        out1 = np.transpose(out[1])
+        out2 = np.transpose(out[2])
+        score = out2[1,:]
+        points = out1
+        ipass = np.where(score>threshold[2])
+        points = points[:,ipass[0]]
+        total_boxes = np.hstack([total_boxes[ipass[0],0:4].copy(), np.expand_dims(score[ipass].copy(),1)])
+        mv = out0[:,ipass[0]]
+
+        w = total_boxes[:,2]-total_boxes[:,0]+1
+        h = total_boxes[:,3]-total_boxes[:,1]+1
+        points[0:5,:] = np.tile(w,(5, 1))*points[0:5,:] + np.tile(total_boxes[:,0],(5, 1))-1
+        points[5:10,:] = np.tile(h,(5, 1))*points[5:10,:] + np.tile(total_boxes[:,1],(5, 1))-1
+        if total_boxes.shape[0]>0:
+            total_boxes = bbreg(total_boxes.copy(), np.transpose(mv))
+            pick = nms(total_boxes.copy(), 0.7, 'Min')
+            total_boxes = total_boxes[pick,:]
+            points = points[:,pick]
+
+    return total_boxes, points
 
 def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
     """Detects faces in an image, and returns bounding boxes and points for them.

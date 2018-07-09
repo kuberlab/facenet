@@ -77,6 +77,11 @@ def main():
 
     print('Load RNET')
 
+    with open('movidius/pnet-29x38.graph', mode='rb') as f:
+        pgraphFileBuff = f.read()
+    pnetGraph = mvnc.Graph("PNet Graph")
+    pnetIn, pnetOut = pnetGraph.allocate_with_fifos(device, pgraphFileBuff)
+
     with open('movidius/rnet.graph', mode='rb') as f:
         rgraphFileBuff = f.read()
     rnetGraph = mvnc.Graph("RNet Graph")
@@ -105,7 +110,11 @@ def main():
         fps = FPS().start()
     bounding_boxes = []
     with tf.Session() as  sess:
-        def _rent_proxy(img):
+        def _pnet_proxy(img):
+            pnetGraph.queue_inference_with_fifo_elem(pnetIn, pnetOut, img, 'pnet')
+            output, userobj = pnetOut.read_elem()
+            return output
+        def _rnet_proxy(img):
             rnetGraph.queue_inference_with_fifo_elem(rnetIn, rnetOut, img, 'rnet')
             output, userobj = rnetOut.read_elem()
             return output
@@ -113,7 +122,7 @@ def main():
             onetGraph.queue_inference_with_fifo_elem(onetIn, onetOut, img, 'onet')
             output, userobj = onetOut.read_elem()
             return output
-        pnet,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align',_rent_proxy,_onet_proxy)
+        pnet,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align',_pnet_proxy,_rnet_proxy,_onet_proxy)
         while True:
             # Capture frame-by-frame
             if args.image is None:
@@ -124,7 +133,7 @@ def main():
 
 
             if (frame_count % frame_interval) == 0:
-                bounding_boxes, _ = detect_face.detect_face(frame, minsize,pnet, rnet, onet,threshold,factor)
+                bounding_boxes, _ = detect_face.movidius_detect_face(frame,pnet, rnet, onet,threshold)
 
 
                 # Check our current fps
