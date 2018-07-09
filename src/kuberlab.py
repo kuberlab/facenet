@@ -168,7 +168,7 @@ def main():
             onetGraph.queue_inference_with_fifo_elem(onetIn, onetOut, img, 'onet')
             output, userobj = onetOut.read_elem()
             return output
-        pnets,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align',pnets_proxy,_rnet_proxy,_onet_proxy)
+        pnets_proxy,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align',pnets_proxy,_rnet_proxy,_onet_proxy)
         while True:
             # Capture frame-by-frame
             if args.image is None:
@@ -183,7 +183,7 @@ def main():
 
             if (frame_count % frame_interval) == 0:
 
-                bounding_boxes, _ = detect_face.movidius_detect_face(frame,pnets, rnet, onet,threshold)
+                bounding_boxes, _ = detect_face.movidius_detect_face(frame,pnets_proxy, rnet, onet,threshold)
 
 
                 # Check our current fps
