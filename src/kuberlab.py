@@ -7,8 +7,7 @@ import tensorflow as tf
 import numpy as np
 import time
 from scipy import misc
-from imutils.video import VideoStream
-from imutils.video import FPS
+
 
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -99,6 +98,8 @@ def main():
 
     #video_capture = cv2.VideoCapture(0)
     if args.image is None:
+        from imutils.video import VideoStream
+        from imutils.video import FPS
         vs = VideoStream(usePiCamera=True).start()
         time.sleep(1)
         fps = FPS().start()
