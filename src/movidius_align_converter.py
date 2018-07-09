@@ -150,14 +150,15 @@ class Network(object):
             for k in range(i):
                 neg[k] = -1.
             neg = neg.astype(np.float32)
+            neg = tf.constant(neg)
             if (len(inp.get_shape()) == 2):
                 nodea = tf.nn.relu(inp)
                 nodeb = tf.nn.relu(tf.multiply(neg, inp))
-                nodec = tf.multiply(alpha, tf.multiply(neg, nodeb))
+                nodec = tf.multiply(tf.multiply(neg, nodeb),alpha)
             else:
                 nodea = tf.nn.relu(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
                 nodeb = tf.nn.relu(tf.multiply(neg, tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
-                nodec = tf.multiply(alpha, tf.multiply(neg, tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
+                nodec = tf.multiply(tf.multiply(neg, tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')),alpha)
             output = tf.add(nodec, nodea)
         return output
 
