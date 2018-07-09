@@ -93,6 +93,7 @@ class PNetHandler(object):
 
     def proxy(self):
         def _exec(img):
+            print("Exec {}x{} on {}".format(self.h,self.w,img.shape))
             self.pnetGraph.queue_inference_with_fifo_elem(self.pnetIn, self.pnetOut, img, 'pnet')
             output, userobj = self.pnetOut.read_elem()
             return output
