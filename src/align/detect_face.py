@@ -461,6 +461,9 @@ def create_mtcnn(sess, model_path):
     return pnet_fun, rnet_fun, onet_fun
 
 def movidius_detect_face(img, pnet, rnet, onet, threshold):
+    h=img.shape[0]
+    w=img.shape[1]
+
     total_boxes=np.empty((0,9))
     points=np.empty(0)
 
