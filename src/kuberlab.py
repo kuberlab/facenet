@@ -179,6 +179,9 @@ def main():
     onetIn.destroy()
     onetOut.destroy()
     onetGraph.destroy()
+    pnetIn.destroy()
+    pnetOut.destroy()
+    pnetGraph.destroy()
     device.close()
     print('Finished')
 
