@@ -22,8 +22,8 @@ def conver_onet(dir):
             onet_output01 = tf.reshape(onet_output0,[1,1,1,2])
             onet_output11 = tf.reshape(onet_output1,[1,1,1,4])
             onet_output21 = tf.reshape(onet_output2,[1,1,1,10])
-            rnet_output = tf.concat([onet_output01, onet_output11,onet_output21],-1, name = 'rnet/output0')
-            tf.nn.max_pool(rnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='rnet/output')
+            rnet_output = tf.concat([onet_output01, onet_output11,onet_output21],-1, name = 'onet/output0')
+            tf.nn.max_pool(rnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='onet/output')
             saver = tf.train.Saver()
             saver.save(sess, os.path.join(dir,'onet'))
             cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/proxy -o movidius/onet.graph'
