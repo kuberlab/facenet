@@ -177,7 +177,7 @@ class Network(object):
             o3 = o2*-1.0
             o4 = o3*alpha
            # output = tf.add(tf.nn.relu(inp),o4)
-            output = tf.nn.relu(inp)
+            output = o2
         if proxy_name is not None:
             tf.identity(output,name='proxy')
         return output
