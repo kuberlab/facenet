@@ -173,6 +173,7 @@ class Network(object):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
+            alpha = tf.reshape(alpha,[1,i])
             neg = np.zeros((i))
             for k in range(i):
                 neg[k] = -1.
@@ -190,7 +191,7 @@ class Network(object):
                 print(nodea)
                 nodeb = tf.nn.relu(tf.multiply(neg, tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
                 print(nodeb)
-                nodec = tf.multiply(alpha,tf.multiply(neg, tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
+                nodec = tf.multiply(npalpha,tf.multiply(neg, tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
                 print(nodec)
             output = tf.add(nodec, nodea)
             if proxy_name is not None:
