@@ -478,8 +478,8 @@ def movidius_detect_face(img, pnet, rnet, onet, threshold):
         out1 = np.transpose(out[1], (0,2,1,3))
         out2 = np.transpose(out[1], (0,2,1,3))
 
-        print('Out1 {}'.format(out1))
-        print('Out2 {}'.format(out2))
+        print('Out0 {}'.format(out0))
+        #print('Out2 {}'.format(out2))
 
         boxes, _ = generateBoundingBox(out1[0,:,:,1].copy(), out0[0,:,:,:].copy(), scale, threshold[0])
 
