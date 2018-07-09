@@ -384,15 +384,18 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
         #rnet = RNet({'data':data})
         rnet.load(os.path.join(model_path, 'det2.npy'), sess,ignore_missing=True)
     with tf.variable_scope('onet'):
-        data = tf.placeholder(tf.float32, (None,48,48,3), 'input')
-        onet = ONet({'data':data})
+        #data = tf.placeholder(tf.float32, (None,48,48,3), 'input')
+        data = tf.placeholder(tf.float32, (None,2), 'input')
+        #onet = ONet({'data':data})
+        onet = ONetMovidiusInference({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess,ignore_missing=True)
 
     #pnet_fun_1 = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0','pnet/prob1:0','pnet/conv4-1/BiasAdd:0'), feed_dict={'pnet/input:0':img})
     pnet_fun_1 = lambda img : sess.run(('pnet/prob1:0'), feed_dict={'pnet/input:0':img})
     #rnet_fun_1 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
     rnet_fun_1 = lambda img : sess.run(('rnet/prob1:0'), feed_dict={'rnet/input:0':img})
-    onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    #onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    onet_fun_1 = lambda img : sess.run(('onet/prob1:0'), feed_dict={'onet/input:0':img})
     def _pnet_fun(img):
         img0 = img.astype(np.float32)
         print("To pnet {}".format(img.shape))
@@ -424,15 +427,15 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
             i = i.astype(np.float32)
             print("To onet {}".format(i.shape))
             out = movidius_onet(i)
-            out = out.reshape((1,1,16))
-            out1 = out[:,:,0:2]
-            out2 = out[:,:,2:7]
-            out3 = out[:,:,7:]
+            out = out.reshape((16,))
+            out1 = out[0:2]
+            out2 = out[2:7]
+            out3 = out[7:]
             outs1.append(out1)
             outs2.append(out2)
             outs3.append(out3)
         return np.stack(outs2),np.stack(outs3),onet_fun_1(np.stack(outs1))
-    return _pnet_fun, _rnet_fun, onet_fun_1
+    return _pnet_fun, _rnet_fun, _onet_fun
 
 def create_mtcnn(sess, model_path):
     if not model_path:
