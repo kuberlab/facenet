@@ -36,7 +36,7 @@ def conver_rnet(dir):
         rnet_output1 = graph.get_tensor_by_name('rnet/conv5-2/conv5-2:0')
         rnet_output0 = tf.reshape(rnet_output0,[1,1,1,2])
         rnet_output1 = tf.reshape(rnet_output1,[1,1,1,4])
-        rnet_output2 = tf.concat([rnet_output0, rnet_output1], 1, name = 'rnet/output')
+        rnet_output2 = tf.concat([rnet_output0, rnet_output1],-1, name = 'rnet/output')
         for f in tf.global_variables():
             print(f)
         saver = tf.train.Saver(tf.global_variables())
