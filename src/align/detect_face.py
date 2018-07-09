@@ -472,9 +472,9 @@ def movidius_detect_face(img, pnet, rnet, onet, threshold):
         im_data = imresample(img, (hs, ws))
         im_data = (im_data-127.5)*0.0078125
         img_x = np.expand_dims(im_data, 0)
-        img_y = np.transpose(img_x, (0,2,1,3))
+        #img_y = np.transpose(img_x, (0,2,1,3))
 
-        out = pnet(img_y)
+        out = pnet(img_x)
         #out0 = np.transpose(out[0], (0,2,1,3))
         #out1 = np.transpose(out[1], (0,2,1,3))
         #out2 = np.transpose(out[1], (0,2,1,3))
