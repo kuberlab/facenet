@@ -173,7 +173,6 @@ class Network(object):
         with tf.variable_scope(name):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
-            alpha = self.make_var('alpha', shape=(i,))
             neg = np.zeros((i))
             for k in range(i):
                 neg[k] = -1.
