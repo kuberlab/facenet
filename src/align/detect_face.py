@@ -523,9 +523,7 @@ def movidius_detect_face(img, pnet, rnet, onet, threshold):
                 return np.empty()
         tempimg = (tempimg-127.5)*0.0078125
         tempimg1 = np.transpose(tempimg, (3,1,0,2))
-        print("RNET In: {}".format(tempimg1.shape))
         out = rnet(tempimg1)
-        print("RNET Out chould be: {} {}".format(out[0].shape,out[1].shape))
         out0 = np.transpose(out[0])
         out1 = np.transpose(out[1])
         score = out1[1,:]
@@ -553,7 +551,9 @@ def movidius_detect_face(img, pnet, rnet, onet, threshold):
                 return np.empty()
         tempimg = (tempimg-127.5)*0.0078125
         tempimg1 = np.transpose(tempimg, (3,1,0,2))
+        print("ONET IN {}".format(tempimg1.shape))
         out = onet(tempimg1)
+        print("ONET OUT {} {} {}".format(out[0].shape,out[1].shape,out[2].shape))
         out0 = np.transpose(out[0])
         out1 = np.transpose(out[1])
         out2 = np.transpose(out[2])
