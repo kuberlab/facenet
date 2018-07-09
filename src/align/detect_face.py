@@ -181,23 +181,17 @@ class Network(object):
             neg = tf.constant(neg)
             if (len(inp.get_shape()) == 2):
                 nodea = tf.nn.relu(inp)
-                print('l1')
-                print(nodea)
                 nodeb = tf.nn.relu(tf.multiply(neg, inp))
-                nodec = tf.multiply(tf.multiply(neg, nodeb),alpha)
-            else:
-                print('l2')
-                nodea = tf.nn.relu(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
-                print(nodea)
-                nodeb = tf.nn.relu(tf.multiply(neg, tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
-                print(nodeb)
                 q = tf.multiply(neg,alpha)
-                print(q)
+                nodec = tf.multiply(neg,q)
+            else:
+                nodea = tf.nn.relu(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
+                nodeb = tf.nn.relu(tf.multiply(neg, tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME')))
+                q = tf.multiply(neg,alpha)
                 nodec = tf.multiply(tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),q)
-                print(nodec)
             output = tf.add(nodec, nodea)
             if proxy_name is not None:
-                tf.identity(inp,name=proxy_name)
+                tf.identity(output,name=proxy_name)
 
 
         return output
