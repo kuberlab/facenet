@@ -382,7 +382,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
 
     with tf.variable_scope('pnet'):
         data = tf.placeholder(tf.float32, (None,None,None,2), 'input')
-        pnet = PNetMovidiusInference({'data':data})
+        pnet = PNet({'data':data})
         pnet.load(os.path.join(model_path, 'det1.npy'), sess,ignore_missing=True)
     with tf.variable_scope('rnet'):
         data = tf.placeholder(tf.float32, (None,2), 'input')
@@ -393,7 +393,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
         onet = ONetMovidiusInference({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess,ignore_missing=True)
 
-    pnet_fun_1 = lambda img : sess.run(('pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+    pnet_fun_1 = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0','pnet/prob1:0'), feed_dict={'pnet/input:0':img})
     rnet_fun_1 = lambda img : sess.run(('rnet/prob1:0'), feed_dict={'rnet/input:0':img})
     onet_fun_1 = lambda img : sess.run(('onet/prob1:0'), feed_dict={'onet/input:0':img})
     def _pnet_fun(img):
@@ -435,7 +435,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
             outs2.append(out2)
             outs3.append(out3)
         return np.stack(outs2),np.stack(outs3),onet_fun_1(np.stack(outs1))
-    return _pnet_fun, _rnet_fun, _onet_fun
+    return pnet_fun_1, _rnet_fun, _onet_fun
 
 def create_mtcnn(sess, model_path):
     if not model_path:
