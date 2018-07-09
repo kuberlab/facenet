@@ -113,7 +113,7 @@ def main():
     if not os.path.exists(dir):
         os.mkdir(dir)
     #preper_pnet(dir)
-    #conver_onet(dir)
+    conver_onet(dir)
     conver_rnet(dir)
 
 if __name__ == "__main__":
