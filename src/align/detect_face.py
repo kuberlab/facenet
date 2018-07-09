@@ -172,12 +172,12 @@ class Network(object):
             if (len(inp.get_shape()) == 2):
                 nodea = tf.nn.relu(inp)
                 nodeb = tf.nn.relu(tf.multiply(inp,-1.0))
-                q = tf.multiply(-1.0,alpha)
+                q = tf.multiply(alpha,-1.0)
                 nodec = tf.multiply(nodeb,q)
             else:
                 nodea = tf.nn.relu(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'))
                 nodeb = tf.nn.relu(tf.multiply(tf.nn.max_pool(inp, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),-1.0))
-                q = tf.multiply(-1.0,alpha)
+                q = tf.multiply(alpha,-1.0)
                 nodec = tf.multiply(tf.nn.max_pool(nodeb, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME'),q)
             output = tf.add(nodec, nodea)
 
