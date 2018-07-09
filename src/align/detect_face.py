@@ -480,6 +480,8 @@ def movidius_detect_face(img, pnet, rnet, onet, threshold):
         out0 = np.transpose(out[0], (0,2,1,3))
         out1 = np.transpose(out[1], (0,2,1,3))
 
+        print('Out1 {}'.format(out1))
+
         boxes, _ = generateBoundingBox(out1[0,:,:,1].copy(), out0[0,:,:,:].copy(), scale, threshold[0])
 
         # inter-scale nms
