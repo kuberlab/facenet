@@ -382,8 +382,8 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
 
     with tf.variable_scope('pnet'):
         data = tf.placeholder(tf.float32, (None,None,None,2), 'input')
-        pnet = PNetMovidiusInference({'data':data},ignore_missing=True)
-        pnet.load(os.path.join(model_path, 'det1.npy'), sess)
+        pnet = PNetMovidiusInference({'data':data})
+        pnet.load(os.path.join(model_path, 'det1.npy'), sess,ignore_missing=True)
     with tf.variable_scope('rnet'):
         data = tf.placeholder(tf.float32, (None,2), 'input')
         rnet = RNetMovidiusInference({'data':data})
