@@ -270,7 +270,7 @@ def addRnet(sess):
 
 def addOnet(sess):
     with tf.variable_scope('onet'):
-        data = tf.placeholder(tf.float32, (None, 48, 48, 3), 'input')
+        data = tf.placeholder(tf.float32, (1, 48, 48, 3), 'input')
         onet = ONet({'data': data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess)
     graph = sess.graph
@@ -278,6 +278,7 @@ def addOnet(sess):
     onet_output1 = graph.get_tensor_by_name('onet/conv6-2/conv6-2:0')
     onet_output2 = graph.get_tensor_by_name('onet/conv6-3/conv6-3:0')
     onet_output2 = tf.concat([onet_output0, onet_output1, onet_output2], -1, name = 'onet/output')
+
 
 def addDnet(sess):
     with tf.variable_scope('pnet'):
