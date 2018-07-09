@@ -395,7 +395,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
         print("To pnet {}".format(img.shape))
         out = movidius_pnet(img0)
         print("From pnet {}".format(out.shape))
-        out = out.reshape((1,9,14,6))
+        out = out.reshape((1,14,9,6))
         out1 = out[:,:,:,0:2]
         out2 = out[:,:,:,2:]
         return out2,pnet_fun_1(out1),out1
@@ -473,6 +473,7 @@ def movidius_detect_face(img, pnet, rnet, onet, threshold):
         im_data = (im_data-127.5)*0.0078125
         img_x = np.expand_dims(im_data, 0)
         img_y = np.transpose(img_x, (0,2,1,3))
+
         out = pnet(img_y)
         out0 = np.transpose(out[0], (0,2,1,3))
         out1 = np.transpose(out[1], (0,2,1,3))
