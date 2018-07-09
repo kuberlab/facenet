@@ -133,7 +133,8 @@ def main():
 
 
             if (frame_count % frame_interval) == 0:
-                bounding_boxes, _ = detect_face.movidius_detect_face(frame,pnet, rnet, onet,threshold)
+                img = cv2.resize(img, (128, 96))
+                bounding_boxes, _ = detect_face.movidius_detect_face(img,pnet, rnet, onet,threshold)
 
 
                 # Check our current fps
