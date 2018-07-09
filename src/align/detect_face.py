@@ -404,7 +404,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
         out = out.reshape((1,9,14,6))
         out1 = out[:,:,:,0:2]
         out2 = out[:,:,:,2:]
-        return pnet_fun_1(out1),out2
+        return out2,pnet_fun_1(out1)
     def _rnet_fun(img):
         outs1 = []
         outs2 = []
@@ -418,7 +418,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
             out2 = out[:,:,2:]
             outs1.append(out1)
             outs2.append(out2)
-        return rnet_fun_1(np.stack(outs1)),np.stack(outs2)
+        return np.stack(outs2),rnet_fun_1(np.stack(outs1))
     def _onet_fun(img):
         outs1 = []
         outs2 = []
@@ -434,7 +434,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnet,movidius_rnet,movidius_
             outs1.append(out1)
             outs2.append(out2)
             outs3.append(out3)
-        return onet_fun_1(np.stack(outs1)),np.stack(outs2),np.stack(outs3)
+        return np.stack(outs2),np.stack(outs3),onet_fun_1(np.stack(outs1))
     return _pnet_fun, _rnet_fun, _onet_fun
 
 def create_mtcnn(sess, model_path):
