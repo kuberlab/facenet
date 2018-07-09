@@ -15,13 +15,8 @@ def get_parser():
         description='Test movidious'
     )
     parser.add_argument(
-        '--size',
-        default='360x480',
-        help='Image size',
-    )
-    parser.add_argument(
         '--image',
-        default='test.png',
+        default=None,
         help='Image',
     )
     return parser
@@ -79,33 +74,52 @@ def main():
         quit()
     device = mvnc.Device(devices[0])
     device.open()
-    graph = mvnc.Graph('graph')
-    print('Load facenet')
+
+
+    print('Load RNET')
+
+    with open('movidius/rnet.graph', mode='rb') as f:
+        rgraphFileBuff = f.read()
+    rnetGraph = mvnc.Graph("RNet Graph")
+    rnetIn, rnetOut = rnetGraph.allocate_with_fifos(device, rgraphFileBuff)
+
+    with open('movidius/onet.graph', mode='rb') as f:
+        ographFileBuff = f.read()
+    onetGraph = mvnc.Graph("ONet Graph")
+    onetIn, onetOut = onetGraph.allocate_with_fifos(device, ographFileBuff)
+
     with open('facenet.graph', mode='rb') as f:
-        graphFileBuff = f.read()
-    fifoIn, fifoOut = graph.allocate_with_fifos(device, graphFileBuff)
+        fgraphFileBuff = f.read()
+    fGraph = mvnc.Graph("Face Graph")
+    fifoIn, fifoOut = fGraph.allocate_with_fifos(device, fgraphFileBuff)
 
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
 
-
-
-
-
     #video_capture = cv2.VideoCapture(0)
-    vs = VideoStream(usePiCamera=True).start()
-    time.sleep(1)
-    fps = FPS().start()
+    if args.image is None:
+        vs = VideoStream(usePiCamera=True).start()
+        time.sleep(1)
+        fps = FPS().start()
     bounding_boxes = []
     with tf.Session() as  sess:
-        pnet,rnet,onet = detect_face.create_mtcnn(sess,'align')
+        def _rent_proxy(img):
+            rnetGraph.queue_inference_with_fifo_elem(rnetIn, rnetOut, img, 'rnet')
+            output, userobj = rnetOut.read_elem()
+            return output
+        def _onet_proxy(img):
+            onetGraph.queue_inference_with_fifo_elem(onetIn, onetOut, img, 'onet')
+            output, userobj = onetOut.read_elem()
+            return output
+        pnet,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align')
         while True:
             # Capture frame-by-frame
-            frame = vs.read()
-            #ret, frame = video_capture.read()
-            #frame = cv2.imread(args.image).astype(np.float32)
-            frame = cv2.resize(frame, (320, 320),interpolation=cv2.INTER_AREA)
+            if args.image is None:
+                frame = vs.read()
+            else:
+                frame = cv2.imread(args.image).astype(np.float32)
+            #frame = cv2.resize(frame, (320, 320),interpolation=cv2.INTER_AREA)
 
 
             if (frame_count % frame_interval) == 0:
@@ -120,29 +134,41 @@ def main():
                     frame_count = 0
 
             if len(bounding_boxes)>0:
-                imgs = get_images(frame,bounding_boxes)
+                #imgs = get_images(frame,bounding_boxes)
+                imgs = []
                 for i in imgs:
                     print(i.shape)
                     i = i.astype(np.float32)
-                    graph.queue_inference_with_fifo_elem(fifoIn, fifoOut, i, 'user object')
+                    fGraph.queue_inference_with_fifo_elem(fifoIn, fifoOut, i, 'user object')
                     output, userobj = fifoOut.read_elem()
                     print(output.shape)
                 add_overlays(frame, bounding_boxes, frame_rate)
 
             frame_count += 1
-            cv2.imshow('Video', frame)
+            if args.image is None:
+                cv2.imshow('Video', frame)
+            else:
+                print(bounding_boxes)
+                break
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
     # When everything is done, release the capture
     #video_capture.release()
-    fps.stop()
-    vs.stop()
-    cv2.destroyAllWindows()
+    if args.image is None:
+        fps.stop()
+        vs.stop()
+        cv2.destroyAllWindows()
     fifoIn.destroy()
     fifoOut.destroy()
-    graph.destroy()
+    fGraph.destroy()
+    rnetIn.destroy()
+    rnetOut.destroy()
+    rnetGraph.destroy()
+    onetIn.destroy()
+    onetOut.destroy()
+    onetGraph.destroy()
     device.close()
     print('Finished')
 

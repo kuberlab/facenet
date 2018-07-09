@@ -284,6 +284,35 @@ class RNet(Network):
         (self.feed('prelu4') #pylint: disable=no-value-for-parameter
              .fc(4, relu=False, name='conv5-2'))
 
+class RNetMovidius(Network):
+    def setup(self):
+        (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
+         .conv(3, 3, 28, 1, 1, padding='VALID', relu=False, name='conv1')
+         .prelu(name='prelu1')
+         .max_pool(3, 3, 2, 2, name='pool1')
+         .conv(3, 3, 48, 1, 1, padding='VALID', relu=False, name='conv2')
+         .prelu(name='prelu2')
+         .max_pool(3, 3, 2, 2, padding='VALID', name='pool2')
+         .conv(2, 2, 64, 1, 1, padding='VALID', relu=False, name='conv3')
+         .prelu(name='prelu3')
+         .fc(128, relu=False, name='conv4')
+         .prelu(name='prelu4')
+         .fc(2, relu=False, name='conv5-1'))
+
+        (tf.identity(self.layers['prelu4'],name='proxy'))
+
+        (self.feed('prelu4') #pylint: disable=no-value-for-parameter
+         .fc(4, relu=False, name='conv5-2'))
+
+class RNetMovidiusInference(Network):
+    def setup(self):
+        (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
+         .fc(2, relu=False, name='conv5-1')
+         .softmax(1,name='prob1'))
+
+        (self.feed('data') #pylint: disable=no-value-for-parameter
+         .fc(4, relu=False, name='conv5-2'))
+
 class ONet(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
@@ -309,7 +338,19 @@ class ONet(Network):
         (self.feed('prelu5') #pylint: disable=no-value-for-parameter
              .fc(10, relu=False, name='conv6-3'))
 
-class ONetMavidius(Network):
+class ONetMovidiusInference(Network):
+    def setup(self):
+        (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
+         .fc(2, relu=False, name='conv6-1')
+         .softmax(1, name='prob1'))
+
+        (self.feed('data') #pylint: disable=no-value-for-parameter
+         .fc(4, relu=False, name='conv6-2'))
+
+        (self.feed('data') #pylint: disable=no-value-for-parameter
+         .fc(10, relu=False, name='conv6-3'))
+
+class ONetMovidius(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
          .conv(3, 3, 32, 1, 1, padding='VALID', relu=False, name='conv1')
@@ -324,7 +365,8 @@ class ONetMavidius(Network):
          .conv(2, 2, 128, 1, 1, padding='VALID', relu=False, name='conv4')
          .prelu(name='prelu4')
          .fc(256, relu=False, name='conv5')
-         .prelu(name='prelu5'))
+         .prelu(name='prelu5')
+         .fc(2, relu=False, name='conv6-1'))
 
         (tf.identity(self.layers['prelu5'],name='proxy'))
 
@@ -333,6 +375,37 @@ class ONetMavidius(Network):
 
         (self.feed('prelu5') #pylint: disable=no-value-for-parameter
          .fc(10, relu=False, name='conv6-3'))
+
+
+def create_movidius_mtcnn(sess, model_path,movidius_rnet,movidius_onet):
+    if not model_path:
+        model_path,_ = os.path.split(os.path.realpath(__file__))
+
+    with tf.variable_scope('pnet'):
+        data = tf.placeholder(tf.float32, (None,None,None,3), 'input')
+        pnet = PNet({'data':data})
+        pnet.load(os.path.join(model_path, 'det1.npy'), sess)
+    with tf.variable_scope('rnet'):
+        data = tf.placeholder(tf.float32, (1,1,128), 'input')
+        rnet = RNetMovidiusInference({'data':data})
+        rnet.load(os.path.join(model_path, 'det2.npy'), sess,ignore_missing=True)
+    with tf.variable_scope('onet'):
+        data = tf.placeholder(tf.float32, (1,1,256), 'input')
+        onet = ONetMovidiusInference({'data':data})
+        onet.load(os.path.join(model_path, 'det3.npy'), sess,ignore_missing=True)
+
+    pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+    rnet_fun_1 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+    onet_fun_1 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    def _rnet_fun(img):
+        out = movidius_rnet(img)
+        out = out.reshape((1,1,128))
+        return rnet_fun_1(out)
+    def _onet_fun(img):
+        out = movidius_onet(img)
+        out = out.reshape((1,1,256))
+        return onet_fun_1(out)
+    return pnet_fun, _rnet_fun, _onet_fun
 
 def create_mtcnn(sess, model_path):
     if not model_path:
@@ -351,25 +424,9 @@ def create_mtcnn(sess, model_path):
         onet = ONet({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess)
         
-    pnet_fun0 = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
-    rnet_fun0 = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
-    onet_fun0 = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
-    def pnet_fun(img):
-        start = time.time()
-        res = pnet_fun0(img)
-        print("PNET: {}".format(time.time()-start))
-        return res
-    def rnet_fun(img):
-        start = time.time()
-        res = rnet_fun0(img)
-        print("RNET: {}".format(time.time()-start))
-        return res
-    def onet_fun(img):
-        start = time.time()
-        res = onet_fun0(img)
-        print("ONET: {}".format(time.time()-start))
-        return res
-
+    pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+    rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+    onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     return pnet_fun, rnet_fun, onet_fun
 
 def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):

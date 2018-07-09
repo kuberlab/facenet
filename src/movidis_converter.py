@@ -12,13 +12,34 @@ def conver_onet(dir):
     with tf.Session() as  sess:
         data = tf.placeholder(tf.float32, (1,48,48,3), 'input')
         with tf.variable_scope('onet'):
-            onet = df.ONetMavidius({'data':data})
+            onet = df.ONetMovidius({'data':data})
         with tf.variable_scope('onet',reuse=tf.AUTO_REUSE):
             onet.load(os.path.join('align', 'det3.npy'), sess)
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
         saver = tf.train.Saver()
         saver.save(sess, os.path.join(dir,'onet'))
+        cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/proxy -o movidius/onet.graph'
+        print(cmd)
+
+def conver_rnet(dir):
+    dir = os.path.join(dir,"rnet")
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    tf.reset_default_graph()
+    with tf.Session() as  sess:
+        data = tf.placeholder(tf.float32, (1,24,24,3), 'input')
+        with tf.variable_scope('rnet'):
+            onet = df.RNetMovidius({'data':data})
+        with tf.variable_scope('rnet',reuse=tf.AUTO_REUSE):
+            onet.load(os.path.join('align', 'det2.npy'), sess)
+        sess.run(tf.global_variables_initializer())
+        sess.run(tf.local_variables_initializer())
+        saver = tf.train.Saver()
+        saver.save(sess, os.path.join(dir,'rnet'))
+        cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/proxy -o movidius/rnet.graph'
+        print(cmd)
+
 def conver_pnet(dir,scale,h,w):
     dir = os.path.join(dir,"pnet",scale)
     if not os.path.exists(dir):
@@ -46,6 +67,7 @@ def conver_pnet(dir,scale,h,w):
         sess.run(tf.local_variables_initializer())
         saver = tf.train.Saver()
         saver.save(sess, os.path.join(dir,'pnet'))
+
 
 def preper_pnet(dir):
     minsize = 20  # minimum size of face
@@ -81,6 +103,7 @@ def main():
         os.mkdir(dir)
     #preper_pnet(dir)
     conver_onet(dir)
+    conver_rnet(dir)
 
 if __name__ == "__main__":
     main()
