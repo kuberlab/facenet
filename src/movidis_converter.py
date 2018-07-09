@@ -33,8 +33,8 @@ def conver_rnet(dir):
             onet = df.RNetMovidius({'data':data})
         with tf.variable_scope('rnet',reuse=tf.AUTO_REUSE):
             onet.load(os.path.join('align', 'det2.npy'), sess)
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.local_variables_initializer())
+        #sess.run(tf.global_variables_initializer())
+        #sess.run(tf.local_variables_initializer())
         saver = tf.train.Saver()
         saver.save(sess, os.path.join(dir,'rnet'))
         cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/proxy -o movidius/rnet.graph'

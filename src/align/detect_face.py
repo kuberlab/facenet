@@ -298,10 +298,8 @@ class RNetMovidius(Network):
          .conv(2, 2, 64, 1, 1, padding='VALID', relu=False, name='conv3')
          .prelu(name='prelu3')
          .fc(128, relu=False, name='conv4')
-         .prelu(name='prelu4')
+         .prelu(name='prelu4',proxy_name='proxy')
          .fc(2, relu=False, name='conv5-1'))
-
-        (tf.identity(self.layers['prelu4'],name='proxy'))
 
         (self.feed('prelu4') #pylint: disable=no-value-for-parameter
          .fc(4, relu=False, name='conv5-2'))
