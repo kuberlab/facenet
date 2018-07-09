@@ -307,7 +307,7 @@ class RNetMovidius(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
          .conv(3, 3, 28, 1, 1, padding='VALID', relu=False, name='conv1')
-         .prelu(name='prelu1')
+         .prelu(name='prelu1',proxy_name='c_prelu1')
          .max_pool(3, 3, 2, 2, name='pool1')
          .conv(3, 3, 48, 1, 1, padding='VALID', relu=False, name='conv2')
          .prelu(name='prelu2')
