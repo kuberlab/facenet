@@ -64,7 +64,7 @@ def conver_pnet(dir,h,w):
         os.mkdir(dir)
     tf.reset_default_graph()
     with tf.Graph().as_default() as graph:
-        data = tf.placeholder(tf.float32, (1,h,w,3), 'input')
+        data = tf.placeholder(tf.float32, (1,w,h,3), 'input')
         with tf.variable_scope('pnet'):
             pnet = df.PNetMovidius({'data':data})
         pnet_output0 = graph.get_tensor_by_name('pnet/conv4-1/BiasAdd:0')
