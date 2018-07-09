@@ -16,9 +16,9 @@ def conver_onet(dir):
                 onet = df.ONetMovidius({'data':data})
             with tf.variable_scope('onet',reuse=tf.AUTO_REUSE):
                 onet.load(os.path.join('align', 'det3.npy'), sess)
-            onet_output0 = graph.get_tensor_by_name('rnet/conv6-1/conv6-1:0')
-            onet_output1 = graph.get_tensor_by_name('rnet/conv6-2/conv6-2:0')
-            onet_output2 = graph.get_tensor_by_name('rnet/conv6-3/conv6-3:0')
+            onet_output0 = graph.get_tensor_by_name('onet/conv6-1/conv6-1:0')
+            onet_output1 = graph.get_tensor_by_name('onet/conv6-2/conv6-2:0')
+            onet_output2 = graph.get_tensor_by_name('onet/conv6-3/conv6-3:0')
             onet_output01 = tf.reshape(onet_output0,[1,1,1,2])
             onet_output11 = tf.reshape(onet_output1,[1,1,1,4])
             onet_output21 = tf.reshape(onet_output2,[1,1,1,10])
