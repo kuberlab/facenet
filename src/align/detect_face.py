@@ -586,7 +586,7 @@ def movidius_detect_face1(img, pnet, rnet, onet, threshold,minsize=20,factor = 0
         factor_count += 1
         hs=int(np.ceil(h*scale))
         ws=int(np.ceil(w*scale))
-        print("Scale {} {}x{}".format(scale,hs,ws))
+        print("Scale {} {}x{}".fomat(scale,hs,ws))
 
 
 
@@ -611,6 +611,7 @@ def movidius_detect_face1(img, pnet, rnet, onet, threshold,minsize=20,factor = 0
         # inter-scale nms
         pick = nms(boxes.copy(), 0.5, 'Union')
         if boxes.size>0 and pick.size>0:
+            print("Scale {} boxes {}".format(scale,boxes.size))
             boxes = boxes[pick,:]
             total_boxes = np.append(total_boxes, boxes, axis=0)
 
