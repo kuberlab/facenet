@@ -111,57 +111,60 @@ def main():
             embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
             phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
 
-        while True:
-            ret, frame = video_capture.read()
-            #frame = cv2.imread(args.image).astype(np.float32)
-            frame = cv2.resize(frame, (640, 480),interpolation=cv2.INTER_AREA)
+        try:
+            while True:
+                ret, frame = video_capture.read()
+                #frame = cv2.imread(args.image).astype(np.float32)
+                frame = cv2.resize(frame, (640, 480),interpolation=cv2.INTER_AREA)
 
-            if (frame_count % frame_interval) == 0:
-                bounding_boxes, _ = detect_face.detect_face(
-                    frame, minsize, pnet, rnet, onet, threshold, factor
-                )
-                # Check our current fps
-                end_time = time.time()
-                if (end_time - start_time) > fps_display_interval:
-                    frame_rate = int(frame_count / (end_time - start_time))
-                    start_time = time.time()
-                    frame_count = 0
+                if (frame_count % frame_interval) == 0:
+                    bounding_boxes, _ = detect_face.detect_face(
+                        frame, minsize, pnet, rnet, onet, threshold, factor
+                    )
+                    # Check our current fps
+                    end_time = time.time()
+                    if (end_time - start_time) > fps_display_interval:
+                        frame_rate = int(frame_count / (end_time - start_time))
+                        start_time = time.time()
+                        frame_count = 0
 
-            if len(bounding_boxes) > 0:
-                if use_classifier:
-                    imgs = get_images(frame, bounding_boxes)
-                    for img_idx, img in enumerate(imgs):
-                        img = img.astype(np.float32)
-                        feed_dict = {
-                            images_placeholder: [img],
-                            phase_train_placeholder: False
-                        }
-                        embedding = sess.run(embeddings, feed_dict=feed_dict)
-                        predictions = model.predict_proba(embedding)
-                        best_class_indices = np.argmax(predictions, axis=1)
-                        best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+                if len(bounding_boxes) > 0:
+                    if use_classifier:
+                        imgs = get_images(frame, bounding_boxes)
+                        for img_idx, img in enumerate(imgs):
+                            img = img.astype(np.float32)
+                            feed_dict = {
+                                images_placeholder: [img],
+                                phase_train_placeholder: False
+                            }
+                            embedding = sess.run(embeddings, feed_dict=feed_dict)
+                            predictions = model.predict_proba(embedding)
+                            best_class_indices = np.argmax(predictions, axis=1)
+                            best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
 
-                        for i in range(len(best_class_indices)):
-                            bb = bounding_boxes[img_idx].astype(int)
-                            text = '%.1f%% %s' % (best_class_probabilities[i] * 100, class_names[best_class_indices[i]])
-                            cv2.putText(
-                                frame, text, (bb[0], bb[1] - 5),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),
-                                thickness=1, lineType=2
-                            )
-                            # print('%4d  %s: %.3f' % (
-                            #     i,
-                            #     class_names[best_class_indices[i]],
-                            #     best_class_probabilities[i])
-                            # )
+                            for i in range(len(best_class_indices)):
+                                bb = bounding_boxes[img_idx].astype(int)
+                                text = '%.1f%% %s' % (best_class_probabilities[i] * 100, class_names[best_class_indices[i]])
+                                cv2.putText(
+                                    frame, text, (bb[0], bb[1] - 5),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),
+                                    thickness=1, lineType=2
+                                )
+                                # print('%4d  %s: %.3f' % (
+                                #     i,
+                                #     class_names[best_class_indices[i]],
+                                #     best_class_probabilities[i])
+                                # )
 
-                add_overlays(frame, bounding_boxes, frame_rate)
+                    add_overlays(frame, bounding_boxes, frame_rate)
 
-            frame_count += 1
-            cv2.imshow('Video', frame)
+                frame_count += 1
+                cv2.imshow('Video', frame)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+        except (KeyboardInterrupt, SystemExit, Exception) as e:
+            print('Caught %s: %s' % (e.__class__.__name__, e))
 
     # When everything is done, release the capture
     video_capture.release()
