@@ -27,7 +27,7 @@ def get_parser():
     parser.add_argument(
         '--resolutions',
         type=str,
-        default="26x37,73x104",
+        default="37x52",
         help='PNET resolutions',
     )
     return parser
@@ -180,7 +180,7 @@ def main():
                 frame = cv2.imread(args.image).astype(np.float32)
 
             if (frame.shape[1]!=640) or (frame.shape[0]!=480):
-                frame = cv2.resize(frame, (640, 480))
+                frame = cv2.resize(frame, (640, 480),interpolation=cv2.INTER_AREA)
 
             print("Frame {}".format(frame.shape))
 

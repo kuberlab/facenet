@@ -498,32 +498,32 @@ def movidius_detect_face(img, pnets, rnet, onet, threshold):
         dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph = pad(total_boxes.copy(), w, h)
 
     numbox = total_boxes.shape[0]
-    if numbox>0:
-        # second stage
-        tempimg = np.zeros((24,24,3,numbox))
-        for k in range(0,numbox):
-            tmp = np.zeros((int(tmph[k]),int(tmpw[k]),3))
-            tmp[dy[k]-1:edy[k],dx[k]-1:edx[k],:] = img[y[k]-1:ey[k],x[k]-1:ex[k],:]
-            if tmp.shape[0]>0 and tmp.shape[1]>0 or tmp.shape[0]==0 and tmp.shape[1]==0:
-                tempimg[:,:,:,k] = imresample(tmp, (24, 24))
-            else:
-                return np.empty()
-        tempimg = (tempimg-127.5)*0.0078125
-        tempimg1 = np.transpose(tempimg, (3,1,0,2))
-        out = rnet(tempimg1)
-        out0 = np.transpose(out[0])
-        out1 = np.transpose(out[1])
-        score = out1[1,:]
-        ipass = np.where(score>threshold[1])
-        total_boxes = np.hstack([total_boxes[ipass[0],0:4].copy(), np.expand_dims(score[ipass].copy(),1)])
-        mv = out0[:,ipass[0]]
-        if total_boxes.shape[0]>0:
-            pick = nms(total_boxes, 0.7, 'Union')
-            total_boxes = total_boxes[pick,:]
-            total_boxes = bbreg(total_boxes.copy(), np.transpose(mv[:,pick]))
-            total_boxes = rerec(total_boxes.copy())
-
-    numbox = total_boxes.shape[0]
+    # if numbox>0:
+    #     # second stage
+    #     tempimg = np.zeros((24,24,3,numbox))
+    #     for k in range(0,numbox):
+    #         tmp = np.zeros((int(tmph[k]),int(tmpw[k]),3))
+    #         tmp[dy[k]-1:edy[k],dx[k]-1:edx[k],:] = img[y[k]-1:ey[k],x[k]-1:ex[k],:]
+    #         if tmp.shape[0]>0 and tmp.shape[1]>0 or tmp.shape[0]==0 and tmp.shape[1]==0:
+    #             tempimg[:,:,:,k] = imresample(tmp, (24, 24))
+    #         else:
+    #             return np.empty()
+    #     tempimg = (tempimg-127.5)*0.0078125
+    #     tempimg1 = np.transpose(tempimg, (3,1,0,2))
+    #     out = rnet(tempimg1)
+    #     out0 = np.transpose(out[0])
+    #     out1 = np.transpose(out[1])
+    #     score = out1[1,:]
+    #     ipass = np.where(score>threshold[1])
+    #     total_boxes = np.hstack([total_boxes[ipass[0],0:4].copy(), np.expand_dims(score[ipass].copy(),1)])
+    #     mv = out0[:,ipass[0]]
+    #     if total_boxes.shape[0]>0:
+    #         pick = nms(total_boxes, 0.7, 'Union')
+    #         total_boxes = total_boxes[pick,:]
+    #         total_boxes = bbreg(total_boxes.copy(), np.transpose(mv[:,pick]))
+    #         total_boxes = rerec(total_boxes.copy())
+    #
+    # numbox = total_boxes.shape[0]
     if numbox>0:
         # third stage
         total_boxes = np.fix(total_boxes).astype(np.int32)
@@ -698,25 +698,29 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
     threshold: threshold=[th1, th2, th3], th1-3 are three steps's threshold
     factor: the factor used to create a scaling pyramid of face sizes to detect in the image.
     """
-    factor_count=0
+    #factor_count=0
     total_boxes=np.empty((0,9))
     points=np.empty(0)
     h=img.shape[0]
     w=img.shape[1]
-    minl=np.amin([h, w])
-    m=12.0/minsize
-    minl=minl*m
+    #minl=np.amin([h, w])
+    #m=12.0/minsize
+    #minl=minl*m
     # create scale pyramid
-    scales=[]
-    while minl>=12:
-        scales += [m*np.power(factor, factor_count)]
-        minl = minl*factor
-        factor_count += 1
+    #scales=[]
+    #while minl>=12:
+    #    scales += [m*np.power(factor, factor_count)]
+    #    minl = minl*factor
+     #   factor_count += 1
 
     # first stage
-    for scale in scales:
-        hs=int(np.ceil(h*scale))
-        ws=int(np.ceil(w*scale))
+    resolutions = [(-14,19),(-19,27),(-26,37),(37,52),(-73,104),(-103,146),(-145,206),(-205,290),(-288,408)]
+    for r1 in resolutions:
+        if r1[0]<0:
+            continue
+        hs=r1[0]
+        ws=r1[1]
+        scale = float(ws)/float(img.shape[1])
         im_data = imresample(img, (hs, ws))
         im_data = (im_data-127.5)*0.0078125
         img_x = np.expand_dims(im_data, 0)
@@ -749,30 +753,7 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
         dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph = pad(total_boxes.copy(), w, h)
 
     numbox = total_boxes.shape[0]
-    if numbox>0:
-        # second stage
-        tempimg = np.zeros((24,24,3,numbox))
-        for k in range(0,numbox):
-            tmp = np.zeros((int(tmph[k]),int(tmpw[k]),3))
-            tmp[dy[k]-1:edy[k],dx[k]-1:edx[k],:] = img[y[k]-1:ey[k],x[k]-1:ex[k],:]
-            if tmp.shape[0]>0 and tmp.shape[1]>0 or tmp.shape[0]==0 and tmp.shape[1]==0:
-                tempimg[:,:,:,k] = imresample(tmp, (24, 24))
-            else:
-                return np.empty()
-        tempimg = (tempimg-127.5)*0.0078125
-        tempimg1 = np.transpose(tempimg, (3,1,0,2))
-        out = rnet(tempimg1)
-        out0 = np.transpose(out[0])
-        out1 = np.transpose(out[1])
-        score = out1[1,:]
-        ipass = np.where(score>threshold[1])
-        total_boxes = np.hstack([total_boxes[ipass[0],0:4].copy(), np.expand_dims(score[ipass].copy(),1)])
-        mv = out0[:,ipass[0]]
-        if total_boxes.shape[0]>0:
-            pick = nms(total_boxes, 0.7, 'Union')
-            total_boxes = total_boxes[pick,:]
-            total_boxes = bbreg(total_boxes.copy(), np.transpose(mv[:,pick]))
-            total_boxes = rerec(total_boxes.copy())
+
 
     numbox = total_boxes.shape[0]
     if numbox>0:
