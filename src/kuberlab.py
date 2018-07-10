@@ -27,7 +27,7 @@ def get_parser():
     parser.add_argument(
         '--resolutions',
         type=str,
-        default="205x290,37x52",
+        default="25x73,73x104",
         help='PNET resolutions',
     )
     return parser
@@ -148,7 +148,7 @@ def main():
     fifoIn, fifoOut = fGraph.allocate_with_fifos(device, fgraphFileBuff)
 
     minsize = 20  # minimum size of face
-    threshold = [0.4, 0.7, 0.7]  # three steps's threshold
+    threshold = [0.4, 0.6, 0.6]  # three steps's threshold
     factor = 0.709  # scale factor
 
     #video_capture = cv2.VideoCapture(0)
