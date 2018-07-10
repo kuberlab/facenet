@@ -1,5 +1,6 @@
 from mvnc import mvncapi as mvnc
 import numpy as np
+import pickle
 import cv2
 import argparse
 import align.detect_face as detect_face
@@ -8,6 +9,7 @@ import numpy as np
 import time
 from scipy import misc
 
+import facenet
 
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -124,6 +126,17 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
 
+    if bool(args.classifier) ^ bool(args.tf_graph_path):
+        raise ValueError('tf_graph path and classifier must be filled.')
+    use_classifier = False
+
+    if args.classifier and args.tf_graph_path:
+        use_classifier = True
+
+    if use_classifier:
+        with open(args.classifier, 'rb') as f:
+            (model, class_names) = pickle.load(f)
+
     devices = mvnc.enumerate_devices()
     if len(devices) == 0:
         print('No devices found')
@@ -212,14 +225,31 @@ def main():
                     frame_count = 0
 
             if len(bounding_boxes) > 0:
-                # imgs = get_images(frame,bounding_boxes)
-                imgs = []
-                for i in imgs:
-                    print(i.shape)
-                    i = i.astype(np.float32)
-                    fGraph.queue_inference_with_fifo_elem(fifoIn, fifoOut, i, 'user object')
-                    output, userobj = fifoOut.read_elem()
-                    print(output.shape)
+                if use_classifier:
+                    imgs = get_images(frame, bounding_boxes)
+                    for img_idx, img in enumerate(imgs):
+                        img = img.astype(np.float32)
+                        fGraph.queue_inference_with_fifo_elem(fifoIn, fifoOut, img, 'user object')
+                        output, userobj = fifoOut.read_elem()
+                        print(output.shape)
+                        predictions = model.predict_proba(output)
+                        best_class_indices = np.argmax(predictions, axis=1)
+                        best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+
+                        for i in range(len(best_class_indices)):
+                            bb = bounding_boxes[img_idx].astype(int)
+                            text = '%.1f%% %s' % (best_class_probabilities[i] * 100, class_names[best_class_indices[i]])
+                            cv2.putText(
+                                frame, text, (bb[0], bb[1] - 5),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),
+                                thickness=1, lineType=2
+                            )
+                            # print('%4d  %s: %.3f' % (
+                            #     i,
+                            #     class_names[best_class_indices[i]],
+                            #     best_class_probabilities[i])
+                            # )
+
                 add_overlays(frame, bounding_boxes, frame_rate)
 
             frame_count += 1

@@ -39,7 +39,7 @@ def get_size(scale):
 
 
 def imresample(img, h,w):
-    im_data = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA) #@UndefinedVariable
+    im_data = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA)  # @UndefinedVariable
     return im_data
 
 
@@ -110,7 +110,6 @@ def main():
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
             embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
             phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
-            embedding_size = embeddings.get_shape()[1]
 
         while True:
             ret, frame = video_capture.read()
