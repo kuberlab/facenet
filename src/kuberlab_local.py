@@ -163,7 +163,7 @@ def main():
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
-        except (KeyboardInterrupt, SystemExit, Exception) as e:
+        except (KeyboardInterrupt, SystemExit) as e:
             print('Caught %s: %s' % (e.__class__.__name__, e))
 
     # When everything is done, release the capture

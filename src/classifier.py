@@ -97,6 +97,8 @@ def main(args):
             
                 # Create a list of class names
                 class_names = [ cls.name.replace('_', ' ') for cls in dataset]
+                print('Classes:')
+                print(class_names)
 
                 # Saving classifier model
                 with open(classifier_filename_exp, 'wb') as outfile:
