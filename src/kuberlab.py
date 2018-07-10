@@ -27,7 +27,7 @@ def get_parser():
     parser.add_argument(
         '--resolutions',
         type=str,
-        default="25x73,73x104",
+        default="26x37,73x104",
         help='PNET resolutions',
     )
     return parser
