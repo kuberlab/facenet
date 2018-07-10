@@ -430,6 +430,7 @@ def create_movidius_mtcnn(sess, model_path,movidius_pnets,movidius_rnet,movidius
         return np.stack(outs2),np.stack(outs3),onet_fun_1(np.stack(outs1))
     return pnets, _rnet_fun, _onet_fun
 
+
 def create_mtcnn(sess, model_path):
     if not model_path:
         model_path,_ = os.path.split(os.path.realpath(__file__))

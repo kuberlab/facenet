@@ -36,9 +36,12 @@ def get_parser():
 def get_size(scale):
     t = scale.split('x')
     return int(t[0]),int(t[1])
+
+
 def imresample(img, h,w):
     im_data = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA) #@UndefinedVariable
     return im_data
+
 
 def add_overlays(frame, boxes, frame_rate):
     if boxes is not None:
@@ -52,6 +55,7 @@ def add_overlays(frame, boxes, frame_rate):
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
                 thickness=2, lineType=2)
 
+
 def parse_resolutions(v):
     res = []
     for r in v.split(','):
@@ -59,6 +63,7 @@ def parse_resolutions(v):
         if len(hw)==2:
             res.append((int(hw[0]),int(hw[1])))
     return res
+
 
 def get_images(image, bounding_boxes):
     face_crop_size=160
@@ -76,6 +81,7 @@ def get_images(image, bounding_boxes):
         image = misc.imresize(cropped, (face_crop_size, face_crop_size), interp='bilinear')
         images.append(image)
     return images
+
 
 def _mvc_exec(img,h,w,pnetGraph,pnetIn,pnetOut):
     print("Exec {}x{} on {}".format(h,w,img.shape))
@@ -159,7 +165,7 @@ def main():
         time.sleep(1)
         fps = FPS().start()
     bounding_boxes = []
-    with tf.Session() as  sess:
+    with tf.Session() as sess:
         pnets_proxy = []
         for p in pnets:
             pnets_proxy.append(p.proxy())

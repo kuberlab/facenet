@@ -1,4 +1,5 @@
-import numpy as np
+import pickle
+
 import cv2
 import argparse
 import align.detect_face as detect_face
@@ -6,6 +7,8 @@ import tensorflow as tf
 import numpy as np
 import time
 from scipy import misc
+
+import facenet
 
 
 def get_parser():
@@ -22,15 +25,23 @@ def get_parser():
         default='test.png',
         help='Image',
     )
+    parser.add_argument(
+        '--classifier',
+        help='Path to classifier file.',
+    )
+    parser.add_argument('--tf-graph-path')
     return parser
 
 
 def get_size(scale):
     t = scale.split('x')
     return int(t[0]),int(t[1])
+
+
 def imresample(img, h,w):
     im_data = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA) #@UndefinedVariable
     return im_data
+
 
 def add_overlays(frame, boxes, frame_rate):
     if boxes is not None:
@@ -44,9 +55,10 @@ def add_overlays(frame, boxes, frame_rate):
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
                 thickness=2, lineType=2)
 
+
 def get_images(image, bounding_boxes):
-    face_crop_size=160
-    face_crop_margin=32
+    face_crop_size = 160
+    face_crop_margin = 32
     images = []
 
     for bb in bounding_boxes:
@@ -60,6 +72,7 @@ def get_images(image, bounding_boxes):
         image = misc.imresize(cropped, (face_crop_size, face_crop_size), interp='bilinear')
         images.append(image)
     return images
+
 
 def main():
     frame_interval = 3  # Number of frames after which to run face detection
@@ -75,26 +88,39 @@ def main():
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
 
+    if bool(args.classifier) ^ bool(args.tf_graph_path):
+        raise ValueError('tf_graph path and classifier must be filled.')
+    use_classifier = False
 
-
-
+    if args.classifier and args.tf_graph_path:
+        use_classifier = True
 
     video_capture = cv2.VideoCapture(0)
 
+    if use_classifier:
+        with open(args.classifier, 'rb') as f:
+            (model, class_names) = pickle.load(f)
+
     bounding_boxes = []
-    with tf.Session() as  sess:
-        pnet,rnet,onet = detect_face.create_mtcnn(sess,'align')
+    with tf.Session() as sess:
+        pnet, rnet, onet = detect_face.create_mtcnn(sess, 'align')
+        if use_classifier:
+            facenet.load_model(args.tf_graph_path)
+            # Get input and output tensors
+            images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+            embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+            phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+            embedding_size = embeddings.get_shape()[1]
+
         while True:
             ret, frame = video_capture.read()
             #frame = cv2.imread(args.image).astype(np.float32)
             frame = cv2.resize(frame, (640, 480),interpolation=cv2.INTER_AREA)
 
-
             if (frame_count % frame_interval) == 0:
-                print(frame.shape)
-                bounding_boxes, _ = detect_face.detect_face(frame, minsize,pnet, rnet, onet,threshold,factor)
-
-
+                bounding_boxes, _ = detect_face.detect_face(
+                    frame, minsize, pnet, rnet, onet, threshold, factor
+                )
                 # Check our current fps
                 end_time = time.time()
                 if (end_time - start_time) > fps_display_interval:
@@ -102,7 +128,34 @@ def main():
                     start_time = time.time()
                     frame_count = 0
 
-            if len(bounding_boxes)>0:
+            if len(bounding_boxes) > 0:
+                if use_classifier:
+                    imgs = get_images(frame, bounding_boxes)
+                    for img_idx, img in enumerate(imgs):
+                        img = img.astype(np.float32)
+                        feed_dict = {
+                            images_placeholder: [img],
+                            phase_train_placeholder: False
+                        }
+                        embedding = sess.run(embeddings, feed_dict=feed_dict)
+                        predictions = model.predict_proba(embedding)
+                        best_class_indices = np.argmax(predictions, axis=1)
+                        best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+
+                        for i in range(len(best_class_indices)):
+                            bb = bounding_boxes[img_idx].astype(int)
+                            text = '%.1f%% %s' % (best_class_probabilities[i] * 100, class_names[best_class_indices[i]])
+                            cv2.putText(
+                                frame, text, (bb[0], bb[1] - 5),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),
+                                thickness=1, lineType=2
+                            )
+                            # print('%4d  %s: %.3f' % (
+                            #     i,
+                            #     class_names[best_class_indices[i]],
+                            #     best_class_probabilities[i])
+                            # )
+
                 add_overlays(frame, bounding_boxes, frame_rate)
 
             frame_count += 1
