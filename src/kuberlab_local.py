@@ -69,8 +69,8 @@ def get_images(image, bounding_boxes):
         bounding_box[2] = np.minimum(bb[2] + face_crop_margin / 2, img_size[1])
         bounding_box[3] = np.minimum(bb[3] + face_crop_margin / 2, img_size[0])
         cropped = image[bounding_box[1]:bounding_box[3], bounding_box[0]:bounding_box[2], :]
-        image = misc.imresize(cropped, (face_crop_size, face_crop_size), interp='bilinear')
-        images.append(image)
+        image_cropped = misc.imresize(cropped, (face_crop_size, face_crop_size), interp='bilinear')
+        images.append(image_cropped)
     return images
 
 
@@ -115,7 +115,7 @@ def main():
             while True:
                 ret, frame = video_capture.read()
                 #frame = cv2.imread(args.image).astype(np.float32)
-                frame = cv2.resize(frame, (640, 480),interpolation=cv2.INTER_AREA)
+                frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
 
                 if (frame_count % frame_interval) == 0:
                     bounding_boxes, _ = detect_face.detect_face(
@@ -141,7 +141,10 @@ def main():
                             predictions = model.predict_proba(embedding)
                             best_class_indices = np.argmax(predictions, axis=1)
                             best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-
+                            print(predictions)
+                            print(best_class_indices)
+                            print(best_class_probabilities)
+                            print(class_names)
                             for i in range(len(best_class_indices)):
                                 bb = bounding_boxes[img_idx].astype(int)
                                 text = '%.1f%% %s' % (best_class_probabilities[i] * 100, class_names[best_class_indices[i]])
@@ -156,7 +159,7 @@ def main():
                                 #     best_class_probabilities[i])
                                 # )
 
-                    add_overlays(frame, bounding_boxes, frame_rate)
+                add_overlays(frame, bounding_boxes, frame_rate)
 
                 frame_count += 1
                 cv2.imshow('Video', frame)

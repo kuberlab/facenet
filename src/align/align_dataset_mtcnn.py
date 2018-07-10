@@ -92,8 +92,13 @@ def main(args):
                         if img.ndim == 2:
                             img = facenet.to_rgb(img)
                         img = img[:,:,0:3]
-    
-                        bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+
+                        try:
+                            bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+                        except Exception as e:
+                            print('Unable to align %s: %s' % (image_path, e))
+                            continue
+
                         nrof_faces = bounding_boxes.shape[0]
                         if nrof_faces>0:
                             det = bounding_boxes[:,0:4]
