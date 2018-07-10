@@ -30,16 +30,21 @@ def get_parser():
         default="37x52,73x104",
         help='PNET resolutions',
     )
+    parser.add_argument(
+        '--classifier',
+        help='Path to classifier file.',
+    )
+    parser.add_argument('--tf-graph-path')
     return parser
 
 
 def get_size(scale):
     t = scale.split('x')
-    return int(t[0]),int(t[1])
+    return int(t[0]), int(t[1])
 
 
-def imresample(img, h,w):
-    im_data = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA) #@UndefinedVariable
+def imresample(img, h, w):
+    im_data = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA)  # @UndefinedVariable
     return im_data
 
 
@@ -60,14 +65,14 @@ def parse_resolutions(v):
     res = []
     for r in v.split(','):
         hw = r.split('x')
-        if len(hw)==2:
-            res.append((int(hw[0]),int(hw[1])))
+        if len(hw) == 2:
+            res.append((int(hw[0]), int(hw[1])))
     return res
 
 
 def get_images(image, bounding_boxes):
-    face_crop_size=160
-    face_crop_margin=32
+    face_crop_size = 160
+    face_crop_margin = 32
     images = []
 
     for bb in bounding_boxes:
@@ -83,18 +88,19 @@ def get_images(image, bounding_boxes):
     return images
 
 
-def _mvc_exec(img,h,w,pnetGraph,pnetIn,pnetOut):
-    print("Exec {}x{} on {}".format(h,w,img.shape))
-    pnetGraph.queue_inference_with_fifo_elem(pnetIn,pnetOut, img, 'pnet')
+def _mvc_exec(img, h, w, pnetGraph, pnetIn, pnetOut):
+    print("Exec {}x{} on {}".format(h, w, img.shape))
+    pnetGraph.queue_inference_with_fifo_elem(pnetIn, pnetOut, img, 'pnet')
     output, userobj = pnetOut.read_elem()
     return output
 
+
 class PNetHandler(object):
-    def __init__(self,device,h,w):
-        with open('movidius/pnet-{}x{}.graph'.format(h,w), mode='rb') as f:
+    def __init__(self, device, h, w):
+        with open('movidius/pnet-{}x{}.graph'.format(h, w), mode='rb') as f:
             graphFileBuff = f.read()
-        self.pnetGraph = mvnc.Graph('PNet Graph {}x{}'.format(h,w))
-        self.pnetIn,self.pnetOut = self.pnetGraph.allocate_with_fifos(device, graphFileBuff)
+        self.pnetGraph = mvnc.Graph('PNet Graph {}x{}'.format(h, w))
+        self.pnetIn, self.pnetOut = self.pnetGraph.allocate_with_fifos(device, graphFileBuff)
         self.h = h
         self.w = w
 
@@ -104,8 +110,9 @@ class PNetHandler(object):
         self.pnetGraph.destroy()
 
     def proxy(self):
-        f = (lambda x: _mvc_exec(x,self.h,self.w,self.pnetGraph,self.pnetIn,self.pnetOut))
-        return (f,self.h,self.w)
+        f = (lambda x: _mvc_exec(x, self.h, self.w, self.pnetGraph, self.pnetIn, self.pnetOut))
+        return (f, self.h, self.w)
+
 
 def main():
     frame_interval = 3  # Number of frames after which to run face detection
@@ -124,12 +131,11 @@ def main():
     device = mvnc.Device(devices[0])
     device.open()
 
-
     print('Load PNET')
 
     pnets = []
     for r in parse_resolutions(args.resolutions):
-        p = PNetHandler(device,r[0],r[1])
+        p = PNetHandler(device, r[0], r[1])
         pnets.append(p)
 
     print('Load RNET')
@@ -157,11 +163,11 @@ def main():
     threshold = [0.6, 0.6, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
 
-    #video_capture = cv2.VideoCapture(0)
+    # video_capture = cv2.VideoCapture(0)
     if args.image is None:
         from imutils.video import VideoStream
         from imutils.video import FPS
-        vs = VideoStream(usePiCamera=True,resolution=(640, 480),framerate=24).start()
+        vs = VideoStream(usePiCamera=True, resolution=(640, 480), framerate=24).start()
         time.sleep(1)
         fps = FPS().start()
     bounding_boxes = []
@@ -169,15 +175,19 @@ def main():
         pnets_proxy = []
         for p in pnets:
             pnets_proxy.append(p.proxy())
+
         def _rnet_proxy(img):
             rnetGraph.queue_inference_with_fifo_elem(rnetIn, rnetOut, img, 'rnet')
             output, userobj = rnetOut.read_elem()
             return output
+
         def _onet_proxy(img):
             onetGraph.queue_inference_with_fifo_elem(onetIn, onetOut, img, 'onet')
             output, userobj = onetOut.read_elem()
             return output
-        pnets_proxy,rnet,onet = detect_face.create_movidius_mtcnn(sess,'align',pnets_proxy,_rnet_proxy,_onet_proxy)
+
+        pnets_proxy, rnet, onet = detect_face.create_movidius_mtcnn(sess, 'align', pnets_proxy, _rnet_proxy,
+                                                                    _onet_proxy)
         while True:
             # Capture frame-by-frame
             if args.image is None:
@@ -185,15 +195,14 @@ def main():
             else:
                 frame = cv2.imread(args.image).astype(np.float32)
 
-            if (frame.shape[1]!=640) or (frame.shape[0]!=480):
-                frame = cv2.resize(frame, (640, 480),interpolation=cv2.INTER_AREA)
+            if (frame.shape[1] != 640) or (frame.shape[0] != 480):
+                frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
 
             print("Frame {}".format(frame.shape))
 
             if (frame_count % frame_interval) == 0:
 
-                bounding_boxes, _ = detect_face.movidius_detect_face(frame,pnets_proxy, rnet, onet,threshold)
-
+                bounding_boxes, _ = detect_face.movidius_detect_face(frame, pnets_proxy, rnet, onet, threshold)
 
                 # Check our current fps
                 end_time = time.time()
@@ -202,8 +211,8 @@ def main():
                     start_time = time.time()
                     frame_count = 0
 
-            if len(bounding_boxes)>0:
-                #imgs = get_images(frame,bounding_boxes)
+            if len(bounding_boxes) > 0:
+                # imgs = get_images(frame,bounding_boxes)
                 imgs = []
                 for i in imgs:
                     print(i.shape)
@@ -224,7 +233,7 @@ def main():
                 break
 
     # When everything is done, release the capture
-    #video_capture.release()
+    # video_capture.release()
     if args.image is None:
         fps.stop()
         vs.stop()
