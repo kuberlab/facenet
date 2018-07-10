@@ -22,7 +22,6 @@ def get_parser():
     )
     parser.add_argument(
         '--image',
-        default='test.png',
         help='Image',
     )
     parser.add_argument(
@@ -113,13 +112,17 @@ def main():
 
         try:
             while True:
-                ret, frame = video_capture.read()
-                #frame = cv2.imread(args.image).astype(np.float32)
-                frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
+                if not args.image:
+                    ret, frame = video_capture.read()
+                    #frame = cv2.imread(args.image).astype(np.float32)
+                    frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
+                else:
+                    frame = cv2.imread(args.image)
+                    frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
 
                 if (frame_count % frame_interval) == 0:
                     bounding_boxes, _ = detect_face.detect_face(
-                        frame, minsize, pnet, rnet, onet, threshold, factor
+                       frame, minsize, pnet, rnet, onet, threshold, factor
                     )
                     # Check our current fps
                     end_time = time.time()
