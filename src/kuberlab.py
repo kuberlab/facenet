@@ -37,7 +37,6 @@ def get_parser():
         '--classifier',
         help='Path to classifier file.',
     )
-    parser.add_argument('--tf-graph-path')
     return parser
 
 
@@ -153,12 +152,7 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
 
-    if bool(args.classifier) ^ bool(args.tf_graph_path):
-        raise ValueError('tf_graph path and classifier must be filled.')
-    use_classifier = False
-
-    if args.classifier and args.tf_graph_path:
-        use_classifier = True
+    use_classifier = bool(args.classifier)
 
     if use_classifier:
         with open(args.classifier, 'rb') as f:
