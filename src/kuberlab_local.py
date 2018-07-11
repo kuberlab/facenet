@@ -60,7 +60,7 @@ def add_overlays(frame, boxes, frame_rate, labels=None):
         )
 
     if labels:
-        for i, l in enumerate(labels):
+        for l in labels:
             cv2.putText(
                 frame, l['label'], (l['left'], l['top'] - 5),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5,
@@ -124,6 +124,7 @@ def main():
 
     bounding_boxes = []
     labels = []
+
     with tf.Session() as sess:
         pnet, rnet, onet = detect_face.create_mtcnn(sess, 'align')
         if use_classifier:
