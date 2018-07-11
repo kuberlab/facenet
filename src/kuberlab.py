@@ -242,11 +242,13 @@ def main():
             if (frame.shape[1] != 640) or (frame.shape[0] != 480):
                 frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
 
+            # BGR -> RGB
+            rgb_frame = frame[:, :, ::-1]
             print("Frame {}".format(frame.shape))
 
             if (frame_count % frame_interval) == 0:
                 bounding_boxes, _ = detect_face.movidius_detect_face(
-                    frame, pnets_proxy, rnet, onet, threshold
+                    rgb_frame, pnets_proxy, rnet, onet, threshold
                 )
 
                 # Check our current fps
@@ -257,7 +259,7 @@ def main():
                     frame_count = 0
 
             if use_classifier:
-                imgs = get_images(frame, bounding_boxes)
+                imgs = get_images(rgb_frame, bounding_boxes)
                 labels = []
                 for img_idx, img in enumerate(imgs):
                     img = img.astype(np.float32)

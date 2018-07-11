@@ -144,8 +144,8 @@ def main():
                     _, frame = video_capture.read()
                 else:
                     frame = cv2.imread(args.image)
-                # BGR -> RGB
                 frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
+                # BGR -> RGB
                 rgb_frame = frame[:, :, ::-1]
 
                 if (frame_count % frame_interval) == 0:
