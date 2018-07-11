@@ -42,17 +42,31 @@ def imresample(img, h,w):
     return im_data
 
 
-def add_overlays(frame, boxes, frame_rate):
+def add_overlays(frame, boxes, frame_rate, labels=None):
     if boxes is not None:
         for face in boxes:
             face_bb = face.astype(int)
-            cv2.rectangle(frame,
-                          (face_bb[0], face_bb[1]), (face_bb[2], face_bb[3]),
-                          (0, 255, 0), 2)
+            cv2.rectangle(
+                frame,
+                (face_bb[0], face_bb[1]), (face_bb[2], face_bb[3]),
+                (0, 255, 0), 2
+            )
 
-    cv2.putText(frame, str(frame_rate) + " fps", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
-                thickness=2, lineType=2)
+    if frame_rate != 0:
+        cv2.putText(
+            frame, str(frame_rate) + " fps", (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
+            thickness=2, lineType=2
+        )
+
+    if labels:
+        for i, l in enumerate(labels):
+            cv2.putText(
+                frame, l['label'], (l['left'], l['top'] - 5),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                (0, 255, 0),
+                thickness=1, lineType=2
+            )
 
 
 def get_images(image, bounding_boxes):
@@ -60,16 +74,28 @@ def get_images(image, bounding_boxes):
     face_crop_margin = 32
     images = []
 
-    for bb in bounding_boxes:
-        bounding_box = np.zeros(4, dtype=np.int32)
+    nrof_faces = bounding_boxes.shape[0]
+    if nrof_faces > 0:
+        det = bounding_boxes[:, 0:4]
+        det_arr = []
         img_size = np.asarray(image.shape)[0:2]
-        bounding_box[0] = np.maximum(bb[0] - face_crop_margin / 2, 0)
-        bounding_box[1] = np.maximum(bb[1] - face_crop_margin / 2, 0)
-        bounding_box[2] = np.minimum(bb[2] + face_crop_margin / 2, img_size[1])
-        bounding_box[3] = np.minimum(bb[3] + face_crop_margin / 2, img_size[0])
-        cropped = image[bounding_box[1]:bounding_box[3], bounding_box[0]:bounding_box[2], :]
-        image_cropped = misc.imresize(cropped, (face_crop_size, face_crop_size), interp='bilinear')
-        images.append(image_cropped)
+        if nrof_faces > 1:
+            for i in range(nrof_faces):
+                det_arr.append(np.squeeze(det[i]))
+        else:
+            det_arr.append(np.squeeze(det))
+
+        for i, det in enumerate(det_arr):
+            det = np.squeeze(det)
+            bb = np.zeros(4, dtype=np.int32)
+            bb[0] = np.maximum(det[0] - face_crop_margin / 2, 0)
+            bb[1] = np.maximum(det[1] - face_crop_margin / 2, 0)
+            bb[2] = np.minimum(det[2] + face_crop_margin / 2, img_size[1])
+            bb[3] = np.minimum(det[3] + face_crop_margin / 2, img_size[0])
+            cropped = image[bb[1]:bb[3], bb[0]:bb[2], :]
+            scaled = misc.imresize(cropped, (face_crop_size, face_crop_size), interp='bilinear')
+            images.append(facenet.prewhiten(scaled))
+
     return images
 
 
@@ -96,14 +122,15 @@ def main():
 
     video_capture = cv2.VideoCapture(0)
 
-    if use_classifier:
-        with open(args.classifier, 'rb') as f:
-            (model, class_names) = pickle.load(f)
-
     bounding_boxes = []
+    labels = []
     with tf.Session() as sess:
         pnet, rnet, onet = detect_face.create_mtcnn(sess, 'align')
         if use_classifier:
+            # Load classifier
+            with open(args.classifier, 'rb') as f:
+                (model, class_names) = pickle.load(f)
+
             facenet.load_model(args.tf_graph_path)
             # Get input and output tensors
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
@@ -113,16 +140,16 @@ def main():
         try:
             while True:
                 if not args.image:
-                    ret, frame = video_capture.read()
-                    #frame = cv2.imread(args.image).astype(np.float32)
-                    frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
+                    _, frame = video_capture.read()
                 else:
                     frame = cv2.imread(args.image)
-                    frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
+                # BGR -> RGB
+                frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
+                rgb_frame = frame[:, :, ::-1]
 
                 if (frame_count % frame_interval) == 0:
                     bounding_boxes, _ = detect_face.detect_face(
-                       frame, minsize, pnet, rnet, onet, threshold, factor
+                        rgb_frame, minsize, pnet, rnet, onet, threshold, factor
                     )
                     # Check our current fps
                     end_time = time.time()
@@ -131,9 +158,9 @@ def main():
                         start_time = time.time()
                         frame_count = 0
 
-                if len(bounding_boxes) > 0:
                     if use_classifier:
-                        imgs = get_images(frame, bounding_boxes)
+                        imgs = get_images(rgb_frame, bounding_boxes)
+                        labels = []
                         for img_idx, img in enumerate(imgs):
                             img = img.astype(np.float32)
                             feed_dict = {
@@ -143,32 +170,39 @@ def main():
                             embedding = sess.run(embeddings, feed_dict=feed_dict)
                             predictions = model.predict_proba(embedding)
                             best_class_indices = np.argmax(predictions, axis=1)
-                            best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-                            print(predictions)
-                            print(best_class_indices)
-                            print(best_class_probabilities)
-                            print(class_names)
+                            best_class_probabilities = predictions[
+                                np.arange(len(best_class_indices)),
+                                best_class_indices
+                            ]
+
                             for i in range(len(best_class_indices)):
                                 bb = bounding_boxes[img_idx].astype(int)
-                                text = '%.1f%% %s' % (best_class_probabilities[i] * 100, class_names[best_class_indices[i]])
-                                cv2.putText(
-                                    frame, text, (bb[0], bb[1] - 5),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),
-                                    thickness=1, lineType=2
+                                text = '%.1f%% %s' % (
+                                    best_class_probabilities[i] * 100,
+                                    class_names[best_class_indices[i]]
                                 )
+                                labels.append({
+                                    'label': text,
+                                    'left': bb[0],
+                                    'top': bb[1] - 5
+                                })
+                                # DEBUG
                                 # print('%4d  %s: %.3f' % (
                                 #     i,
                                 #     class_names[best_class_indices[i]],
                                 #     best_class_probabilities[i])
                                 # )
 
-                add_overlays(frame, bounding_boxes, frame_rate)
+                add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
 
                 frame_count += 1
                 cv2.imshow('Video', frame)
 
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                key = cv2.waitKey(1)
+                # Wait 'q' or Esc
+                if key == ord('q') or key == 27:
                     break
+
         except (KeyboardInterrupt, SystemExit) as e:
             print('Caught %s: %s' % (e.__class__.__name__, e))
 
