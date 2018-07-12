@@ -188,12 +188,13 @@ def main():
     onetGraph = mvnc.Graph("ONet Graph")
     onetIn, onetOut = onetGraph.allocate_with_fifos(device, ographFileBuff)
 
-    print('Load FACENET')
+    if use_classifier:
+        print('Load FACENET')
 
-    with open('facenet.graph', mode='rb') as f:
-        fgraphFileBuff = f.read()
-    fGraph = mvnc.Graph("Face Graph")
-    fifoIn, fifoOut = fGraph.allocate_with_fifos(device, fgraphFileBuff)
+        with open('facenet.graph', mode='rb') as f:
+            fgraphFileBuff = f.read()
+        fGraph = mvnc.Graph("Face Graph")
+        fifoIn, fifoOut = fGraph.allocate_with_fifos(device, fgraphFileBuff)
 
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.6, 0.7]  # three steps's threshold
@@ -306,9 +307,10 @@ def main():
         fps.stop()
         vs.stop()
         cv2.destroyAllWindows()
-    fifoIn.destroy()
-    fifoOut.destroy()
-    fGraph.destroy()
+    if use_classifier:
+        fifoIn.destroy()
+        fifoOut.destroy()
+        fGraph.destroy()
     rnetIn.destroy()
     rnetOut.destroy()
     rnetGraph.destroy()
