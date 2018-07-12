@@ -154,6 +154,8 @@ def main():
 
     use_classifier = bool(args.classifier)
 
+    use_classifier = False
+
     if use_classifier:
         with open(args.classifier, 'rb') as f:
             (model, class_names) = pickle.load(f)
