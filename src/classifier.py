@@ -26,35 +26,59 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import argparse
+import math
+import os
+import pickle
+import sys
+
 import tensorflow as tf
 import numpy as np
-import argparse
-import facenet
-import os
-import sys
-import math
-import pickle
-
 from sklearn import svm
+
+import facenet
+
+try:
+    from mlboardclient.api import client
+except ImportError:
+    client = None
+
+
+def update_data(data, use_mlboard, mlboard):
+    if use_mlboard and mlboard:
+        mlboard.update_task_info(data)
 
 
 def main(args):
+    use_mlboard = False
+    mlboard = None
+    if client:
+        mlboard = client.Client()
+        try:
+            mlboard.apps.get()
+        except Exception:
+            mlboard = None
+            print('Do not use mlboard.')
+        else:
+            print('Use mlboard parameters logging.')
+            use_mlboard = True
+
     with tf.Graph().as_default():
-
         with tf.Session() as sess:
-
             np.random.seed(seed=args.seed)
 
             if args.use_split_dataset:
                 dataset_tmp = facenet.get_dataset(args.data_dir)
                 train_set, test_set = split_dataset(dataset_tmp, args.min_nrof_images_per_class,
                                                     args.nrof_train_images_per_class)
-                if (args.mode == 'TRAIN'):
+                if args.mode == 'TRAIN':
                     dataset = train_set
-                elif (args.mode == 'CLASSIFY'):
+                elif args.mode == 'CLASSIFY':
                     dataset = test_set
             else:
                 dataset = facenet.get_dataset(args.data_dir)
+
+            update_data({'mode': args.mode}, use_mlboard, mlboard)
 
             # Check that there are at least one training image per class
             for cls in dataset:
@@ -64,6 +88,15 @@ def main(args):
 
             print('Number of classes: %d' % len(dataset))
             print('Number of images: %d' % len(paths))
+            data = {
+                'num_classes': len(dataset),
+                'num_images': len(paths),
+                'model_path': args.model,
+                'image_size': args.image_size,
+                'data_dir': args.data_dir,
+                'batch_size': args.batch_size,
+            }
+            update_data(data, use_mlboard, mlboard)
 
             # Load the model
             print('Loading feature extraction model')
@@ -90,7 +123,7 @@ def main(args):
 
             classifier_filename_exp = os.path.expanduser(args.classifier_filename)
 
-            if (args.mode == 'TRAIN'):
+            if args.mode == 'TRAIN':
                 # Train classifier
                 print('Training classifier')
                 model = svm.SVC(kernel='linear', probability=True)
@@ -106,7 +139,7 @@ def main(args):
                     pickle.dump((model, class_names), outfile)
                 print('Saved classifier model to file "%s"' % classifier_filename_exp)
 
-            elif (args.mode == 'CLASSIFY'):
+            elif args.mode == 'CLASSIFY':
                 # Classify images
                 print('Testing classifier')
                 with open(classifier_filename_exp, 'rb') as infile:
@@ -122,6 +155,7 @@ def main(args):
                     print('%4d  %s: %.3f' % (i, class_names[best_class_indices[i]], best_class_probabilities[i]))
 
                 accuracy = np.mean(np.equal(best_class_indices, labels))
+                update_data({'accuracy': accuracy}, use_mlboard, mlboard)
                 print('Accuracy: %.3f' % accuracy)
 
 
