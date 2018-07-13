@@ -86,7 +86,7 @@ def main(args):
                         print(errorMessage)
                     else:
                         if img.ndim<2:
-                            print('Unable to align "%s"' % image_path)
+                            print('Unable to align "%s", shape %s' % (image_path, img.shape))
                             text_file.write('%s\n' % (output_filename))
                             continue
                         if img.ndim == 2:
@@ -136,7 +136,7 @@ def main(args):
                                 misc.imsave(output_filename_n, scaled)
                                 text_file.write('%s %d %d %d %d\n' % (output_filename_n, bb[0], bb[1], bb[2], bb[3]))
                         else:
-                            print('Unable to align "%s"' % image_path)
+                            print('Unable to align "%s", n_faces=%s' % (image_path, nrof_faces))
                             text_file.write('%s\n' % (output_filename))
                             
     print('Total number of images: %d' % nrof_images_total)
@@ -157,8 +157,9 @@ def parse_arguments(argv):
     parser.add_argument('--gpu_memory_fraction', type=float,
         help='Upper bound on the amount of GPU memory that will be used by the process.', default=1.0)
     parser.add_argument('--detect_multiple_faces', type=bool,
-                        help='Detect and align multiple faces per image.', default=False)
+                        help='Detect and align multiple faces per image.', default=True)
     return parser.parse_args(argv)
+
 
 if __name__ == '__main__':
     main(parse_arguments(sys.argv[1:]))

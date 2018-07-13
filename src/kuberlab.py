@@ -38,6 +38,11 @@ def get_parser():
         '--classifier',
         help='Path to classifier file.',
     )
+    parser.add_argument(
+        '--graph',
+        help='Path to facenet graph.',
+        default='facenet.graph',
+    )
     return parser
 
 
@@ -186,7 +191,7 @@ def main():
     if use_classifier:
         print('Load FACENET')
 
-        with open('facenet.graph', mode='rb') as f:
+        with open(args.graph, mode='rb') as f:
             fgraphFileBuff = f.read()
         fGraph = mvnc.Graph("Face Graph")
         fifoIn, fifoOut = fGraph.allocate_with_fifos(device, fgraphFileBuff)
