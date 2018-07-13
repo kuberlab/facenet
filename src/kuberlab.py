@@ -154,8 +154,6 @@ def main():
 
     use_classifier = bool(args.classifier)
 
-    use_classifier = False
-
     if use_classifier:
         with open(args.classifier, 'rb') as f:
             (model, class_names) = pickle.load(f)
@@ -195,6 +193,10 @@ def main():
             fgraphFileBuff = f.read()
         fGraph = mvnc.Graph("Face Graph")
         fifoIn, fifoOut = fGraph.allocate_with_fifos(device, fgraphFileBuff)
+
+        # Load classifier
+        with open(args.classifier, 'rb') as f:
+            (model, class_names) = pickle.load(f)
 
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.6, 0.7]  # three steps's threshold
