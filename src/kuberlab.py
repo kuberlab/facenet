@@ -300,9 +300,7 @@ def main():
                             best_class_probabilities[i])
                         )
 
-                add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
-            else:
-                add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
+            add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
 
             frame_count += 1
             if args.image is None:
