@@ -264,9 +264,15 @@ def main():
                     img = img.astype(np.float32)
                     fGraph.queue_inference_with_fifo_elem(fifoIn, fifoOut, img, 'user object')
                     output, userobj = fifoOut.read_elem()
-                    output = output.reshape(1, 512)
+                    try:
+                        output = output.reshape(1, model.shape_fit_[1])
+                        predictions = model.predict_proba(output)
+                    except ValueError as e:
+                        # Can not reshape
+                        print("Output from graph doesn't consistent with classifier model: %s" % e)
+                        continue
+
                     print(output.shape)
-                    predictions = model.predict_proba(output)
                     best_class_indices = np.argmax(predictions, axis=1)
                     best_class_probabilities = predictions[
                         np.arange(len(best_class_indices)),

@@ -115,10 +115,8 @@ def main():
 
     if bool(args.classifier) ^ bool(args.tf_graph_path):
         raise ValueError('tf_graph path and classifier must be filled.')
-    use_classifier = False
 
-    if args.classifier and args.tf_graph_path:
-        use_classifier = True
+    use_classifier = args.classifier and args.tf_graph_path
 
     video_capture = cv2.VideoCapture(0)
 
@@ -169,7 +167,13 @@ def main():
                                 phase_train_placeholder: False
                             }
                             embedding = sess.run(embeddings, feed_dict=feed_dict)
-                            predictions = model.predict_proba(embedding)
+                            try:
+                                predictions = model.predict_proba(embedding)
+                            except ValueError as e:
+                                # Can not reshape
+                                print("Output from graph doesn't consistent with classifier model: %s" % e)
+                                continue
+
                             best_class_indices = np.argmax(predictions, axis=1)
                             best_class_probabilities = predictions[
                                 np.arange(len(best_class_indices)),
