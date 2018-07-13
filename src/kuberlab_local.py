@@ -171,7 +171,10 @@ def main():
                                 predictions = model.predict_proba(embedding)
                             except ValueError as e:
                                 # Can not reshape
-                                print("Output from graph doesn't consistent with classifier model: %s" % e)
+                                print(
+                                    "ERROR: Output from graph doesn't consistent"
+                                    " with classifier model: %s" % e
+                                )
                                 continue
 
                             best_class_indices = np.argmax(predictions, axis=1)

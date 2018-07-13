@@ -269,7 +269,10 @@ def main():
                         predictions = model.predict_proba(output)
                     except ValueError as e:
                         # Can not reshape
-                        print("Output from graph doesn't consistent with classifier model: %s" % e)
+                        print(
+                            "ERROR: Output from graph doesn't consistent"
+                            " with classifier model: %s" % e
+                        )
                         continue
 
                     print(output.shape)
