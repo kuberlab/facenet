@@ -6,6 +6,7 @@ import align.detect_face as detect_face
 import tensorflow as tf
 import numpy as np
 import time
+import six
 from scipy import misc
 
 import facenet
@@ -128,7 +129,10 @@ def main():
         if use_classifier:
             # Load classifier
             with open(args.classifier, 'rb') as f:
-                (model, class_names) = pickle.load(f)
+                opts = {'file': f}
+                if six.PY3:
+                    opts['encoding'] = 'latin1'
+                (model, class_names) = pickle.load(**opts)
 
             facenet.load_model(args.tf_graph_path)
             # Get input and output tensors

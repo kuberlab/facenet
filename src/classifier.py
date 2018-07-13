@@ -136,7 +136,7 @@ def main(args):
 
                 # Saving classifier model
                 with open(classifier_filename_exp, 'wb') as outfile:
-                    pickle.dump((model, class_names), outfile)
+                    pickle.dump((model, class_names), outfile, protocol=2)
                 print('Saved classifier model to file "%s"' % classifier_filename_exp)
 
             elif args.mode == 'CLASSIFY':

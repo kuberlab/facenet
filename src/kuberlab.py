@@ -7,6 +7,7 @@ import align.detect_face as detect_face
 import tensorflow as tf
 import numpy as np
 import time
+import six
 from scipy import misc
 
 import facenet
@@ -154,10 +155,6 @@ def main():
 
     use_classifier = bool(args.classifier)
 
-    if use_classifier:
-        with open(args.classifier, 'rb') as f:
-            (model, class_names) = pickle.load(f)
-
     devices = mvnc.enumerate_devices()
     if len(devices) == 0:
         print('No devices found')
@@ -196,7 +193,10 @@ def main():
 
         # Load classifier
         with open(args.classifier, 'rb') as f:
-            (model, class_names) = pickle.load(f)
+            opts = {'file': f}
+            if six.PY3:
+                opts['encoding'] = 'latin1'
+            (model, class_names) = pickle.load(**opts)
 
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.6, 0.7]  # three steps's threshold
