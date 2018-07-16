@@ -37,6 +37,9 @@ import random
 from time import sleep
 
 
+tf.logging.set_verbosity(tf.logging.INFO)
+
+
 def main(args):
     sleep(random.random())
     output_dir = os.path.expanduser(args.output_dir)
