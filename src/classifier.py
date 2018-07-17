@@ -271,7 +271,7 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--upload-threshold',
-        type=int,
+        type=float,
         default=0.9,
         help='Threshold for uploading model',
     )
