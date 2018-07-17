@@ -43,7 +43,7 @@ dataset:
    kind: dataset
 
 
-dataset:
+faces:
  value: 'faces'
  version: '1.0.1'
  workspace: 'kuberlab-demo'
