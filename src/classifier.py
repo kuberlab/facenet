@@ -58,7 +58,7 @@ def upload_model(use_mlboard, mlboard, classifier_path, model, version):
 
     print('Uploading model...')
     dirname = '/tmp/classifier'
-    os.makedirs(dirname, exist_ok=True)
+    os.makedirs(dirname)
     shutil.copy(classifier_path, path.join(dirname, path.basename(classifier_path)))
     mlboard.model_upload(model, version, dirname)
 
