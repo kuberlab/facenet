@@ -68,7 +68,7 @@ spec:
     resources:
     - command: >-
         export PYTHONPATH=./src/:$PYTHONPATH; python src/align/align_dataset_mtcnn.py
-        /notebooks/training_faces /notebooks/faces_160 --image_size 160  --margin 32
+        /notebooks/faces /notebooks/faces_160 --image_size 160  --margin 32
       default_volume_mapping: true
       {{- if eq .python_version.value "3" }}
       images:
