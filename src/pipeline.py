@@ -40,7 +40,7 @@ def main():
                 'Please take a look at the corresponding task logs'
                 ' for more information about failure.'
             )
-            LOG.warning("Workflow is completed with status ERROR")
+            LOG.warning("Workflow completed with status ERROR")
             sys.exit(1)
 
         LOG.info(
@@ -48,7 +48,7 @@ def main():
             % (completed.name, completed.build, completed.status)
         )
 
-    LOG.info("Workflow is completed with status SUCCESS")
+    LOG.info("Workflow completed with status SUCCESS")
 
 
 if __name__ == '__main__':
