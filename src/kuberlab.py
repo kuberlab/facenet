@@ -123,7 +123,7 @@ def get_images(image, bounding_boxes):
 
 
 def _mvc_exec(img, h, w, pnetGraph, pnetIn, pnetOut):
-    print("Exec {}x{} on {}".format(h, w, img.shape))
+    # print("Exec {}x{} on {}".format(h, w, img.shape))
     pnetGraph.queue_inference_with_fifo_elem(pnetIn, pnetOut, img, 'pnet')
     output, userobj = pnetOut.read_elem()
     return output
@@ -248,7 +248,7 @@ def main():
 
             # BGR -> RGB
             rgb_frame = frame[:, :, ::-1]
-            print("Frame {}".format(frame.shape))
+            # print("Frame {}".format(frame.shape))
 
             if (frame_count % frame_interval) == 0:
                 bounding_boxes, _ = detect_face.movidius_detect_face(
