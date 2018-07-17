@@ -63,6 +63,7 @@ def upload_model(use_mlboard, mlboard, classifier_path, model, version):
     mlboard.model_upload(model, version, dirname)
 
     shutil.rmtree(dirname)
+    update_data({'model_uploaded': True}, use_mlboard, mlboard)
     print("New model uploaded as '%s', version '%s'." % (model, version))
 
 
