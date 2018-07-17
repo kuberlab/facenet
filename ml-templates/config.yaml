@@ -4,7 +4,7 @@ metadata:
 spec:
   package_manager: "pip{{.python_version.value}}"
   packages:
-    manager: "pip{{.python_version.value}}"
+    - manager: "pip{{.python_version.value}}"
   default_mount_path: "/notebooks"
   serving:
   - default_volume_mapping: true
