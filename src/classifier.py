@@ -278,6 +278,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--upload-model',
         type=bool,
+        action='store_true',
         default=False,
     )
 
