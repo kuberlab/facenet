@@ -1,0 +1,14 @@
+Description: Facenet
+Engine: gotpl
+Home: https://kuberlab.com
+Keywords:
+- kuberlab
+- facenet
+- tensorflow
+- movidius
+Maintainers:
+- Email: support@kuberlab.com
+  Name: kuberlab
+Name: facenet
+Type: mlapp-v2
+Version: 1.0.0

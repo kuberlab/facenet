@@ -1,0 +1,250 @@
+kind: MLApp
+metadata:
+  name: facenet
+spec:
+  package_manager: "pip{{.python_version.value}}"
+  packages:
+    manager: "pip{{.python_version.value}}"
+  default_mount_path: "/notebooks"
+  serving:
+  - default_volume_mapping: true
+    displayName: Serving
+    images:
+      gpu: "kuberlab/tensorflow-serving:latest-gpu"
+      cpu: "kuberlab/tensorflow-serving:latest"
+    command: "tensorflow_model_server --port=9000 --model_name=model --model_base_path=$checkpoint_path"
+    name: serving
+    ports:
+    - name: http
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+    resources:
+      limits:
+        cpu: "1"
+        memory: 4Gi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    spec:
+      rawInput: false
+  tasks:
+  - name: standalone
+    resources:
+    - command: >-
+        export PYTHONPATH=./src/:$PYTHONPATH; python3 src/train_softmax.py
+        --logs_base_dir logs --models_base_dir src/models --data_dir $DATASET_DIR
+        --model_def models.inception_resnet_v1 --optimizer ADAM --learning_rate -1
+        --max_nrof_epochs 10 --keep_probability 0.8 --random_crop --random_flip --use_fixed_image_standardization
+        --learning_rate_schedule_file data/learning_rate_schedule_classifier_casia.txt  --embedding_size
+        128 --lfw_distance_metric 1 --lfw_use_flipped_images --lfw_subtract_mean --validation_set_split_ratio
+        0.05 --validate_every_n_epochs 5 --prelogits_norm_loss_factor 5e-4 --pretrained_model
+        $DATA_DIR/model-20170512-110547.ckpt-250000 --epoch_size 1000
+      default_volume_mapping: true
+      {{- if eq .python_version.value "3" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      {{- if eq .python_version.value "2" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      name: worker
+      replicas: 1
+      resources:
+        accelerators:
+          gpu: 1
+        limits:
+          cpu: "1"
+          memory: 8Gi
+        requests:
+          cpu: 100m
+          memory: 64Mi
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: align
+    resources:
+    - command: >-
+        export PYTHONPATH=./src/:$PYTHONPATH; python src/align/align_dataset_mtcnn.py
+        /notebooks/training_faces /notebooks/faces_160 --image_size 160  --margin 32
+      default_volume_mapping: true
+      {{- if eq .python_version.value "3" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      {{- if eq .python_version.value "2" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      name: worker
+      replicas: 1
+      resources:
+        limits:
+          cpu: "1"
+          memory: 8Gi
+        requests:
+          cpu: 100m
+          memory: 64Mi
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: train
+    resources:
+    - command: >-
+        export PYTHONPATH=./src/:$PYTHONPATH; python src/classifier.py TRAIN
+        /notebooks/faces_160/ $DATA_DIR/20180402-114759.pb $TRAINING_DIR/classifier-48.pkl
+      default_volume_mapping: true
+      {{- if eq .python_version.value "3" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      {{- if eq .python_version.value "2" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      name: worker
+      replicas: 1
+      resources:
+        limits:
+          cpu: "1"
+          memory: 8Gi
+        requests:
+          cpu: 100m
+          memory: 64Mi
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: validate
+    resources:
+    - command: >-
+        export PYTHONPATH=./src/:$PYTHONPATH; python src/classifier.py CLASSIFY
+        /notebooks/faces_160/ $DATA_DIR/20180402-114759.pb $TRAINING_DIR/classifier-48.pkl
+        --upload-model --upload-threshold 0.9
+      default_volume_mapping: true
+      {{- if eq .python_version.value "3" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      {{- if eq .python_version.value "2" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      is_permanent: false
+      maxRestartCount: 0
+      name: worker
+      replicas: 1
+      resources:
+        limits:
+          cpu: "1"
+          memory: 8Gi
+        requests:
+          cpu: 100m
+          memory: 64Mi
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: pipeline
+    resources:
+    - command: python src/pipeline.py
+      default_volume_mapping: true
+      {{- if eq .python_version.value "3" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      {{- if eq .python_version.value "2" }}
+      images:
+        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
+        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
+      {{- end }}
+      name: worker
+      replicas: 1
+      resources:
+        limits:
+          cpu: "1"
+          memory: 8Gi
+        requests:
+          cpu: 100m
+          memory: 64Mi
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: movidius
+    resources:
+    - command: >-
+        python3 -c 'from mvnc import mvncapi; print(mvncapi.enumerate_devices())';
+        exit 0; export PYTHONPATH=./src/:$PYTHONPATH; python3 src/kuberlab.py --image
+        $FACES_DIR/Nikolay_Makhotkin/2018-07-10-130846.jpg --classifier $TRAINING_DIR/classifier.pkl
+        --graph /notebooks/facenet.graph
+      default_volume_mapping: true
+      images:
+        cpu: kuberlab/movidius-test:latest
+        gpu: kuberlab/tensorflow:gpu-27-1.7.0-full
+      name: worker
+      nodes: knode:movidius
+      replicas: 1
+      resources:
+        limits:
+          cpu: "1"
+          memory: 8Gi
+        requests:
+          cpu: 100m
+          memory: 64Mi
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  uix:
+  - default_volume_mapping: true
+    displayName: Jupyter
+    front_api: /api/v1/ml2-proxy/kuberlab-demo/facenet/jupyter/
+    {{- if eq .python_version.value "3" }}
+    images:
+      gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
+      cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
+    {{- end }}
+    {{- if eq .python_version.value "2" }}
+    images:
+      gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
+      cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
+    {{- end }}
+    name: jupyter
+    ports:
+    - name: http
+      port: 8888
+      protocol: TCP
+      targetPort: 8888
+    resources:
+      limits:
+        cpu_mi: 1000
+        memory_mb: 4295
+      requests:
+        cpu_mi: 100
+        memory_mb: 68
+  volumes:
+  - clusterStorage: '{{ .storage.value }}'
+    name: training
+  - gitRepo:
+      repository: https://github.com/kuberlab/facenet
+    name: src
+    subPath: facenet
+  - clusterStorage: '{{ .storage.value }}'
+    isLibDir: true
+    name: lib
+  - datasetFS:
+      workspace: {{ .dataset.workspace }}
+      dataset: {{ .dataset.value }}
+      version: {{ .dataset.version }}
+    isLibDir: false
+    name: data
+  - clusterStorage: '{{ .storage.value }}'
+    mountPath: /notebooks
+    name: code
+    subPath: code
+  - datasetFS:
+      workspace: {{ .faces.workspace }}
+      dataset: {{ .faces.value }}
+      version: {{ .faces.version }}
+    name: faces
