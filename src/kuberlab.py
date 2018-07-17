@@ -236,86 +236,94 @@ def main():
         pnets_proxy, rnet, onet = detect_face.create_movidius_mtcnn(
             sess, 'align', pnets_proxy, _rnet_proxy, _onet_proxy
         )
-        while True:
-            # Capture frame-by-frame
-            if args.image is None:
-                frame = vs.read()
-            else:
-                frame = cv2.imread(args.image).astype(np.float32)
+        try:
+            while True:
+                # Capture frame-by-frame
+                if args.image is None:
+                    frame = vs.read()
+                else:
+                    frame = cv2.imread(args.image).astype(np.float32)
 
-            if (frame.shape[1] != 640) or (frame.shape[0] != 480):
-                frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
+                if (frame.shape[1] != 640) or (frame.shape[0] != 480):
+                    frame = cv2.resize(
+                        frame, (640, 480), interpolation=cv2.INTER_AREA
+                    )
 
-            # BGR -> RGB
-            rgb_frame = frame[:, :, ::-1]
-            # print("Frame {}".format(frame.shape))
+                # BGR -> RGB
+                rgb_frame = frame[:, :, ::-1]
+                # print("Frame {}".format(frame.shape))
 
-            if (frame_count % frame_interval) == 0:
-                bounding_boxes, _ = detect_face.movidius_detect_face(
-                    rgb_frame, pnets_proxy, rnet, onet, threshold
-                )
+                if (frame_count % frame_interval) == 0:
+                    bounding_boxes, _ = detect_face.movidius_detect_face(
+                        rgb_frame, pnets_proxy, rnet, onet, threshold
+                    )
 
-                # Check our current fps
-                end_time = time.time()
-                if (end_time - start_time) > fps_display_interval:
-                    frame_rate = int(frame_count / (end_time - start_time))
-                    start_time = time.time()
-                    frame_count = 0
+                    # Check our current fps
+                    end_time = time.time()
+                    if (end_time - start_time) > fps_display_interval:
+                        frame_rate = int(frame_count/(end_time - start_time))
+                        start_time = time.time()
+                        frame_count = 0
 
-            if use_classifier:
-                imgs = get_images(rgb_frame, bounding_boxes)
-                labels = []
-                for img_idx, img in enumerate(imgs):
-                    img = img.astype(np.float32)
-                    fGraph.queue_inference_with_fifo_elem(fifoIn, fifoOut, img, 'user object')
-                    output, userobj = fifoOut.read_elem()
-                    try:
-                        output = output.reshape(1, model.shape_fit_[1])
-                        predictions = model.predict_proba(output)
-                    except ValueError as e:
-                        # Can not reshape
-                        print(
-                            "ERROR: Output from graph doesn't consistent"
-                            " with classifier model: %s" % e
+                if use_classifier:
+                    imgs = get_images(rgb_frame, bounding_boxes)
+                    labels = []
+                    for img_idx, img in enumerate(imgs):
+                        img = img.astype(np.float32)
+                        fGraph.queue_inference_with_fifo_elem(
+                            fifoIn, fifoOut, img, 'user object'
                         )
-                        continue
+                        output, userobj = fifoOut.read_elem()
+                        try:
+                            output = output.reshape(1, model.shape_fit_[1])
+                            predictions = model.predict_proba(output)
+                        except ValueError as e:
+                            # Can not reshape
+                            print(
+                                "ERROR: Output from graph doesn't consistent"
+                                " with classifier model: %s" % e
+                            )
+                            continue
 
-                    print(output.shape)
-                    best_class_indices = np.argmax(predictions, axis=1)
-                    best_class_probabilities = predictions[
-                        np.arange(len(best_class_indices)),
-                        best_class_indices
-                    ]
+                        print(output.shape)
+                        best_class_indices = np.argmax(predictions, axis=1)
+                        best_class_probabilities = predictions[
+                            np.arange(len(best_class_indices)),
+                            best_class_indices
+                        ]
 
-                    for i in range(len(best_class_indices)):
-                        bb = bounding_boxes[img_idx].astype(int)
-                        text = '%.1f%% %s' % (
-                            best_class_probabilities[i] * 100,
-                            class_names[best_class_indices[i]]
-                        )
-                        labels.append({
-                            'label': text,
-                            'left': bb[0],
-                            'top': bb[1] - 5
-                        })
-                        # DEBUG
-                        print('%4d  %s: %.3f' % (
-                            i,
-                            class_names[best_class_indices[i]],
-                            best_class_probabilities[i])
-                        )
+                        for i in range(len(best_class_indices)):
+                            bb = bounding_boxes[img_idx].astype(int)
+                            text = '%.1f%% %s' % (
+                                best_class_probabilities[i] * 100,
+                                class_names[best_class_indices[i]]
+                            )
+                            labels.append({
+                                'label': text,
+                                'left': bb[0],
+                                'top': bb[1] - 5
+                            })
+                            # DEBUG
+                            print('%4d  %s: %.3f' % (
+                                i,
+                                class_names[best_class_indices[i]],
+                                best_class_probabilities[i])
+                            )
 
-            add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
+                add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
 
-            frame_count += 1
-            if args.image is None:
-                cv2.imshow('Video', frame)
-            else:
-                print(bounding_boxes)
-                break
+                frame_count += 1
+                if args.image is None:
+                    cv2.imshow('Video', frame)
+                else:
+                    print(bounding_boxes)
+                    break
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+        except (KeyboardInterrupt, SystemExit) as e:
+            print('Caught %s: %s' % (e.__class__.__name__, e))
 
     # When everything is done, release the capture
     # video_capture.release()
