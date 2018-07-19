@@ -40,6 +40,8 @@ def parse_args():
         )
     )
 
+
+
     return parser.parse_args()
 
 
@@ -73,13 +75,13 @@ def main():
             saver.save(sess, out_dir + '/facenet')
 
     if args.check:
-        cmd = 'mvNCCheck {0}/facenet.meta -w {0} -in input -on output -s 12'.format(out_dir)
+        cmd = 'mvNCCheck {0}/facenet.meta -in input -on output -s 12'.format(out_dir)
         print('Running check:\n')
         print(cmd)
         print('')
         print(subprocess.check_output(cmd, shell=True).decode())
 
-    cmd = 'mvNCCompile {0}/facenet.meta -w {0} -in input -on output -o {1} -s 12'.format(out_dir, args.output_file)
+    cmd = 'mvNCCompile {0}/facenet.meta -in input -on output -o {1} -s 12'.format(out_dir, args.output_file)
 
     print('Run:\n')
     print(cmd)
