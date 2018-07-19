@@ -75,7 +75,7 @@ def main():
             saver.save(sess, out_dir + '/facenet')
 
     if args.check:
-        cmd = 'mvNCCheck {0}/facenet.meta -in input -on output -s 12'.format(out_dir)
+        cmd = 'mvNCCheck {0}/facenet.meta -in input -on output -s 12 -cs 0,1,2 -S 255'.format(out_dir)
         print('Running check:\n')
         print(cmd)
         print('')
