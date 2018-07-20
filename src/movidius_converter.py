@@ -10,7 +10,7 @@ import argparse
 def conver_onet(dir):
     out_dir = os.path.join(dir,"movidius")
     if not os.path.exists(out_dir):
-        os.mkdir(dir)
+        os.mkdir(out_dir)
     dir = os.path.join(dir,"onet")
     if not os.path.exists(dir):
         os.mkdir(dir)
