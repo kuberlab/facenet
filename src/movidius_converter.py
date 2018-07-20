@@ -257,7 +257,7 @@ def parse_args():
         help='Convert all'
     )
     parser.add_argument(
-        'model_base_path',
+        '--model_base_path',
         help='Base model path'
     )
     parser.add_argument(
