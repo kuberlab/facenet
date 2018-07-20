@@ -125,7 +125,7 @@ def preper_pnet(dir):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'training_dir',
+        '--training_dir',
         help='Training dir'
     )
     parser.add_argument(
