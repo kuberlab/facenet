@@ -1,12 +1,6 @@
 kind: MLApp
 metadata:
   name: movidius-facenet
-revision:
-  author: "1"
-  author_email: agunin@3playnet.com
-  author_name: Alexander Gunin
-  branch: master
-  comment: Execute task pipeline 2018-07-19 21:54:46
 spec:
   default_mount_path: /notebooks
   default_read_only: false
@@ -22,31 +16,15 @@ spec:
       images:
         cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
         gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: train-classifier
@@ -56,31 +34,15 @@ spec:
       images:
         cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
         gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: validate-classifier
@@ -90,31 +52,15 @@ spec:
       images:
         cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
         gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: pipeline
@@ -124,31 +70,15 @@ spec:
       images:
         cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
         gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: pnet-grapth
@@ -158,32 +88,16 @@ spec:
       images:
         cpu: kuberlab/movidius-test:latest
         gpu: ""
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       nodes: knode:movidius
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: onet-grapth
@@ -193,32 +107,16 @@ spec:
       images:
         cpu: kuberlab/movidius-test:latest
         gpu: ""
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       nodes: knode:movidius
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: rnet-grapth
@@ -228,32 +126,16 @@ spec:
       images:
         cpu: kuberlab/movidius-test:latest
         gpu: ""
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       nodes: knode:movidius
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: fnet-grapth
@@ -264,32 +146,16 @@ spec:
       images:
         cpu: kuberlab/movidius-test:latest
         gpu: ""
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       nodes: knode:movidius
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: facenet-grapth
@@ -300,37 +166,20 @@ spec:
       images:
         cpu: kuberlab/movidius-test:latest
         gpu: ""
-      is_permanent: false
-      maxRestartCount: 0
       name: worker
       nodes: knode:movidius
       replicas: 1
       resources:
-        accelerators:
-          gpu: 0
         limits:
           cpu: "1"
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 8Gi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
         requests:
           cpu: 100m
-          cpu_mi: 0
-          execution_time: 0
-          gpu: 0
           memory: 64Mi
-          memory_mb: 0
-          parallel_runs: 0
-          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   uix:
   - default_volume_mapping: true
-    disabled: false
     displayName: Jupyter
     images:
       cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
@@ -342,68 +191,28 @@ spec:
       protocol: TCP
       targetPort: 8888
     resources:
-      accelerators:
-        gpu: 0
       limits:
         cpu: "1"
-        cpu_mi: 0
-        execution_time: 0
-        gpu: 0
         memory: 4Gi
-        memory_mb: 0
-        parallel_runs: 0
-        replicas: 0
       requests:
-        cpu: 101m
-        cpu_mi: 0
-        execution_time: 0
-        gpu: 0
+        cpu: 100m
         memory: 64Mi
-        memory_mb: 0
-        parallel_runs: 0
-        replicas: 0
   volumes:
   - clusterStorage: '{{ .storage.value }}'
-    isLibDir: false
-    isTrainLogDir: false
-    isWorkspaceLocal: false
-    mountPath: ""
     name: training
-    readOnly: false
-    subPath: ""
   - gitRepo:
       repository: https://github.com/kuberlab/facenet
-    isLibDir: false
-    isTrainLogDir: false
-    isWorkspaceLocal: false
-    mountPath: ""
     name: src
-    readOnly: false
     subPath: facenet/src
   - clusterStorage: '{{ .storage.value }}'
     isLibDir: true
-    isTrainLogDir: false
-    isWorkspaceLocal: false
-    mountPath: ""
     name: lib
-    readOnly: false
-    subPath: ""
   - clusterStorage: '{{ .storage.value }}'
-    isLibDir: false
-    isTrainLogDir: false
-    isWorkspaceLocal: false
     mountPath: /notebooks
     name: code
-    readOnly: false
     subPath: code
   - datasetFS:
       dataset: facenet-pretrained
       version: 2018.4.2-vgg
       workspace: kuberlab-demo
-    isLibDir: false
-    isTrainLogDir: false
-    isWorkspaceLocal: false
-    mountPath: ""
     name: model
-    readOnly: false
-    subPath: ""
