@@ -1,7 +1,7 @@
 
 def parse_check_ouput(out):
     result = {}
-    for l in out.splitline():
+    for l in out.split('\n'):
         l = l.strip()
         p = l.split(':')
         if len(p)>0:
