@@ -14,15 +14,18 @@ def submit(params):
         from mlboardclient.api import client
         client.update_task_info(params)
 
-def push(model,dirame):
+def push(name,dirame):
     if os.environ.get('PROJECT_ID',None) is not None:
         from mlboardclient.api import client
         timestamp = datetime.datetime.now().strftime('%s')
-        version = '1.0.0-%s' % timestamp
+        if name is not None:
+            version = '1.0.0-{}-{}'.format(name,timestamp)
+        else:
+            version = '1.0.0-{}'.format(timestamp)
         mlboard = client.Client()
-        mlboard.model_upload(model, version, dirame)
-        submit({'model':'{}:{}'.format(model,version)})
-        logging.info("New model uploaded as '%s', version '%s'." % (model, version))
+        mlboard.model_upload('movidius-facenet', version, dirame)
+        submit({'model':'{}:{}'.format('movidius-facenet',version)})
+        logging.info("New model uploaded as 'movidius-facenet', version '%s'." % (version))
 
 def conver_onet(dir,prefix=None,do_push=False):
     out_dir = os.path.join(dir,"movidius")
@@ -65,7 +68,7 @@ def conver_onet(dir,prefix=None,do_push=False):
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
             if do_push:
-                push('facenet-onet',out_dir)
+                push('onet',out_dir)
 
 def conver_rnet(dir,prefix=None,do_push=False):
     out_dir = os.path.join(dir,"movidius")
@@ -108,9 +111,9 @@ def conver_rnet(dir,prefix=None,do_push=False):
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
             if do_push:
-                push('facenet-rnet',out_dir)
+                push('rnet',out_dir)
 
-def conver_pnet(dir,h,w):
+def conver_pnet(dir,h,w,prefix=None):
     logging.info("Prepare PNET-{}x{} graph".format(h,w))
     out_dir = os.path.join(dir,"movidius")
     if not os.path.exists(out_dir):
@@ -144,7 +147,11 @@ def conver_pnet(dir,h,w):
             logging.info('Validate Movidius: %s',cmd)
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
-            result = parse_check_ouput(result,'{}x{}'.format(h,w))
+            if prefix is None:
+                prefix = '{}x{}_'.format(h,w)
+            else:
+                prefix = '{}{}x{}_'.format(prefix,h,w)
+            result = parse_check_ouput(result,prefix)
             submit(result)
             cmd = 'mvNCCompile {}/pnet.meta -in input -on pnet/output -o {}/pnet-{}x{}.graph -s 12'.format(dir,out_dir,h,w)
             logging.info('Compile: %s',cmd)
@@ -152,7 +159,7 @@ def conver_pnet(dir,h,w):
             logging.info(result)
 
 
-def prepare_pnet(dir,do_push=False):
+def prepare_pnet(dir,do_push=False,prefix=None):
     minsize = 20  # minimum size of face
     factor = 0.709  # scale factor
     factor_count=0
@@ -170,15 +177,15 @@ def prepare_pnet(dir,do_push=False):
     for scale in scales:
         hs=int(np.ceil(h*scale))
         ws=int(np.ceil(w*scale))
-        conver_pnet(dir,hs,ws)
+        conver_pnet(dir,hs,ws,prefix=prefix)
     if do_push:
         out_dir = os.path.join(dir,"movidius")
-        push('facenet-pnet',out_dir)
+        push('pnet',out_dir)
 
 def convert_facenet(dir,model_base_path,image_size,output_size,prefix=None,do_push=False):
     import facenet
     from models import inception_resnet_v1
-    out_dir = os.path.join(dir,"movidius")
+    out_dir = os.path.join(dir,'movidius')
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
     dir = os.path.join(dir,"facenet")
@@ -218,7 +225,7 @@ def convert_facenet(dir,model_base_path,image_size,output_size,prefix=None,do_pu
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
             if do_push:
-                push('movidius-facenet',out_dir)
+                push('facenet',out_dir)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -281,10 +288,13 @@ def main():
     if not os.path.exists(args.training_dir):
         os.mkdir(args.training_dir)
     if args.all:
-        conver_onet(args.training_dir,prefix='onet')
-        conver_rnet(args.training_dir,prefix='rnet')
-        prepare_pnet(args.training_dir)
-        convert_facenet(dir,args.model_base_path,args.image_size,args.output_size,prefix='facenet',do_push=True)
+        conver_onet(args.training_dir,prefix='onet.')
+        conver_rnet(args.training_dir,prefix='rnet.')
+        prepare_pnet(args.training_dir,prefix='pnet.')
+        convert_facenet(args.training_dir,args.model_base_path,args.image_size,args.output_size,prefix='facenet.')
+        if args.do_push:
+            out_dir = os.path.join(args.training_dir,"movidius")
+            push(None,out_dir)
         return
     if args.onet:
         conver_onet(args.training_dir,do_push=args.do_push)
