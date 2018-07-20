@@ -51,8 +51,7 @@ spec:
       workDir: $SRC_DIR
   - name: train-classifier
     resources:
-    - command: python classifier.py TRAIN $CODE_DIR/faces_160 $MODEL_DIR/20180402-114759.pb
-        $TRAINING_DIR/classifier.pkl
+    - command: python classifier.py TRAIN $CODE_DIR/faces_160 $MODEL_DIR/20180402-114759.pb $TRAINING_DIR/classifier.pkl
       default_volume_mapping: true
       images:
         cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
@@ -86,8 +85,7 @@ spec:
       workDir: $SRC_DIR
   - name: validate-classifier
     resources:
-    - command: python classifier.py CLASSIFY $CODE_DIR/faces_160 $MODEL_DIR/20180402-114759.pb
-        $TRAINING_DIR/classifier.pkl --upload-model --upload-threshold 0.9
+    - command: python classifier.py CLASSIFY $CODE_DIR/faces_160 $MODEL_DIR/20180402-114759.pb $TRAINING_DIR/classifier.pkl --upload-model --upload-threshold 0.9
       default_volume_mapping: true
       images:
         cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
