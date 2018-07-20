@@ -3,19 +3,29 @@ import tensorflow as tf
 import os
 import numpy as np
 import subprocess
+import logging
+LOG = logging.getLogger('INFO')
+import argparse
 
 def conver_onet(dir):
+    out_dir = os.path.join(dir,"movidius")
+    if not os.path.exists(out_dir):
+        os.mkdir(dir)
     dir = os.path.join(dir,"onet")
     if not os.path.exists(dir):
         os.mkdir(dir)
+
     tf.reset_default_graph()
     with tf.Graph().as_default() as graph:
         with tf.Session() as  sess:
             data = tf.placeholder(tf.float32, (1,48,48,3), 'input')
+            LOG.info("Load ONET graph")
             with tf.variable_scope('onet'):
                 onet = df.ONetMovidius({'data':data})
+            LOG.info("Load ONET weights")
             with tf.variable_scope('onet',reuse=tf.AUTO_REUSE):
                 onet.load(os.path.join('align', 'det3.npy'), sess)
+            LOG.info("Create ONET ouput layer")
             onet_output0 = graph.get_tensor_by_name('onet/conv6-1/conv6-1:0')
             onet_output1 = graph.get_tensor_by_name('onet/conv6-2/conv6-2:0')
             onet_output2 = graph.get_tensor_by_name('onet/conv6-3/conv6-3:0')
@@ -25,10 +35,16 @@ def conver_onet(dir):
             rnet_output = tf.concat([onet_output01, onet_output11,onet_output21],-1, name = 'onet/output0')
             tf.nn.max_pool(rnet_output, ksize = [1, 1, 1, 1], strides = [1, 1, 1, 1], padding = 'SAME',name='onet/output')
             saver = tf.train.Saver()
+            LOG.info("Freeze ONET graph")
             saver.save(sess, os.path.join(dir,'onet'))
-            cmd = 'mvNCCompile movidius/onet/onet.meta -in input -on onet/output -o movidius/onet.graph -s 12'
-            print(cmd)
-            subprocess.call(cmd, shell=True)
+            cmd = 'mvNCCheck {}/onet.meta -in input -on onet/output -s 12 -cs 0,1,2 -S 255'.format(dir)
+            LOG.info('Validate Movidius: %s',cmd)
+            result = subprocess.check_output(cmd, shell=True).decode()
+            LOG.info(result)
+            cmd = 'mvNCCompile {}/onet.meta -in input -on onet/output -o {}/onet.graph -s 12'.format(dir,out_dir)
+            LOG.info('Compile: %s',cmd)
+            result = subprocess.check_output(cmd, shell=True).decode()
+            LOG.info(result)
 
 def conver_rnet(dir):
     tf.reset_default_graph()
@@ -105,7 +121,28 @@ def preper_pnet(dir):
         ws=int(np.ceil(w*scale))
         conver_pnet(dir,hs,ws)
 
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'training_dir',
+        help='Training dir'
+    )
+    parser.add_argument(
+        '--onet',
+        action='store_true',
+        help='Build ONET'
+    )
+    return parser.parse_args()
+
 def main():
+    args = parse_args()
+    if not os.path.exists(args.training_dir):
+        os.mkdir(args.training_dir)
+    if args.onet:
+        conver_onet(args.training_dir)
+
+def main1():
     dir = 'movidius'
     if not os.path.exists(dir):
         os.mkdir(dir)
