@@ -9,3 +9,4 @@ def parse_check_ouput(out):
                 name = p[0][len('Obtained '):].strip()
                 value = p[1].strip().rstrip(',')
                 result[name] = value
+    return result
