@@ -333,8 +333,7 @@ spec:
     disabled: false
     displayName: Jupyter
     images:
-      cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
-      gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
+      cpu: kuberlab/movidius-test
     name: jupyter
     ports:
     - name: http
