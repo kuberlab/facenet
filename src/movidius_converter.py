@@ -67,16 +67,20 @@ def conver_onet(dir,do_push=False):
             if do_push:
                 push('facenet-onet',out_dir)
 
-def conver_rnet(dir):
+def conver_rnet(dir,do_push=False):
+    out_dir = os.path.join(dir,"movidius")
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    dir = os.path.join(dir,"rnet")
+    if not os.path.exists(dir):
+        os.mkdir(dir)
     tf.reset_default_graph()
     with tf.Graph().as_default() as graph:
-        dir = os.path.join(dir,"rnet")
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+        logging.info("Load RNET graph")
         data = tf.placeholder(tf.float32, (1,24,24,3), 'input')
         with tf.variable_scope('rnet'):
             onet = df.RNetMovidius({'data':data})
-
+        logging.info("Create RNET output")
         rnet_output0 = graph.get_tensor_by_name('rnet/conv5-1/conv5-1:0')
         rnet_output1 = graph.get_tensor_by_name('rnet/conv5-2/conv5-2:0')
         rnet_output2 = tf.reshape(rnet_output0,[1,1,1,2])
@@ -87,23 +91,40 @@ def conver_rnet(dir):
         with tf.Session() as  sess:
             sess.run(tf.global_variables_initializer())
             sess.run(tf.local_variables_initializer())
+            logging.info("Load RNET weights")
             with tf.variable_scope('rnet',reuse=tf.AUTO_REUSE):
                 onet.load(os.path.join('align', 'det2.npy'), sess)
-
+            logging.info("Freeze RNET graph")
             saver.save(sess, os.path.join(dir,'rnet'))
-            cmd = 'mvNCCompile movidius/rnet/rnet.meta -in input -on rnet/output -o movidius/rnet.graph -s 12'
-            print(cmd)
-            subprocess.call(cmd, shell=True)
+
+            cmd = 'mvNCCheck {}/rnet.meta -in input -on rnet/output -s 12 -cs 0,1,2 -S 255'.format(dir)
+            logging.info('Validate Movidius: %s',cmd)
+            result = subprocess.check_output(cmd, shell=True).decode()
+            logging.info(result)
+            result = parse_check_ouput(result)
+            submit(result)
+            cmd = 'mvNCCompile {}/rnet.meta -in input -on rnet/output -o {}/rnet.graph -s 12'.format(dir,out_dir)
+            logging.info('Compile: %s',cmd)
+            result = subprocess.check_output(cmd, shell=True).decode()
+            logging.info(result)
+            if do_push:
+                push('facenet-rnet',out_dir)
 
 def conver_pnet(dir,h,w):
+    logging.info("Prepare PNET-{}x{} graph".format(h,w))
+    out_dir = os.path.join(dir,"movidius")
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
     dir = os.path.join(dir,'pnet-{}x{}'.format(h,w))
     if not os.path.exists(dir):
         os.mkdir(dir)
     tf.reset_default_graph()
     with tf.Graph().as_default() as graph:
+        logging.info("Load PNET graph")
         data = tf.placeholder(tf.float32, (1,w,h,3), 'input')
         with tf.variable_scope('pnet'):
             pnet = df.PNetMovidius({'data':data})
+        logging.info("Create PNET output")
         pnet_output0 = graph.get_tensor_by_name('pnet/conv4-1/BiasAdd:0')
         pnet_output1 = graph.get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
         pnet_output = tf.concat([pnet_output0, pnet_output1],-1, name = 'pnet/output0')
@@ -112,17 +133,26 @@ def conver_pnet(dir,h,w):
         with tf.Session() as  sess:
             sess.run(tf.global_variables_initializer())
             sess.run(tf.local_variables_initializer())
+            logging.info("Load PNET weights")
             with tf.variable_scope('pnet',reuse=tf.AUTO_REUSE):
                 pnet.load(os.path.join('align', 'det1.npy'), sess)
 
+            logging.info("Freeze PNET graph")
             saver.save(sess, os.path.join(dir,'pnet'))
-            cmd = 'mvNCCompile {}/pnet.meta -in input -on pnet/output -o movidius/pnet-{}x{}.graph -s 12'.format(dir,h,w)
-            print(cmd)
-            subprocess.call(cmd, shell=True)
+
+            cmd = 'mvNCCheck {}/pnet.meta -in input -on pnet/output -s 12 -cs 0,1,2 -S 255'.format(dir)
+            logging.info('Validate Movidius: %s',cmd)
+            result = subprocess.check_output(cmd, shell=True).decode()
+            logging.info(result)
+            result = parse_check_ouput(result,'{}x{}'.format(h,w))
+            submit(result)
+            cmd = 'mvNCCompile {}/pnet.meta -in input -on pnet/output -o {}/pnet-{}x{}.graph -s 12'.format(dir,out_dir,h,w)
+            logging.info('Compile: %s',cmd)
+            result = subprocess.check_output(cmd, shell=True).decode()
+            logging.info(result)
 
 
-
-def preper_pnet(dir):
+def prepare_pnet(dir,do_push=False):
     minsize = 20  # minimum size of face
     factor = 0.709  # scale factor
     factor_count=0
@@ -141,6 +171,9 @@ def preper_pnet(dir):
         hs=int(np.ceil(h*scale))
         ws=int(np.ceil(w*scale))
         conver_pnet(dir,hs,ws)
+    if do_push:
+        out_dir = os.path.join(dir,"movidius")
+        push('facenet-pnet',out_dir)
 
 
 def parse_args():
@@ -153,6 +186,16 @@ def parse_args():
         '--onet',
         action='store_true',
         help='Build ONET'
+    )
+    parser.add_argument(
+        '--pnet',
+        action='store_true',
+        help='Build PNET'
+    )
+    parser.add_argument(
+        '--rnet',
+        action='store_true',
+        help='Build RNET'
     )
     parser.add_argument(
         '--do_push',
@@ -169,15 +212,12 @@ def main():
         os.mkdir(args.training_dir)
     if args.onet:
         conver_onet(args.training_dir,do_push=args.do_push)
+    if args.rnet:
+        conver_rnet(args.training_dir,do_push=args.do_push)
+    if args.pnet:
+        prepare_pnet(args.training_dir,do_push=args.do_push)
 
-def main1():
-    dir = 'movidius'
-    if not os.path.exists(dir):
-        os.mkdir(dir)
-    #preper_pnet(dir)
-    conver_onet(dir)
-    conver_rnet(dir)
-    preper_pnet(dir)
+
 
 if __name__ == "__main__":
     main()

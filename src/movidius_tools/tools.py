@@ -1,5 +1,5 @@
 
-def parse_check_ouput(out):
+def parse_check_ouput(out,prefix=None):
     result = {}
     for l in out.split('\n'):
         l = l.strip()
@@ -11,5 +11,7 @@ def parse_check_ouput(out):
                 l = value.split(' ')
                 if len(l)>1:
                     value = l[0]
+                if prefix is not None:
+                    name = '%s.%s'.format(prefix,name)
                 result[name] = value
     return result
