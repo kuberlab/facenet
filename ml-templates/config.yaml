@@ -1,215 +1,342 @@
 kind: MLApp
 metadata:
-  name: facenet
+  name: movidius-facenet
+revision:
+  author: "1"
+  author_email: agunin@3playnet.com
+  author_name: Alexander Gunin
+  branch: master
+  comment: Execute task pipeline 2018-07-19 21:54:46
 spec:
-  package_manager: "pip{{.python_version.value}}"
+  default_mount_path: /notebooks
+  default_read_only: false
+  package_manager: pip3
   packages:
-    - manager: "pip{{.python_version.value}}"
-  default_mount_path: "/notebooks"
-  serving:
-  - default_volume_mapping: true
-    displayName: Serving
-    images:
-      gpu: "kuberlab/tensorflow-serving:latest-gpu"
-      cpu: "kuberlab/tensorflow-serving:latest"
-    command: "tensorflow_model_server --port=9000 --model_name=model --model_base_path=$checkpoint_path"
-    name: serving
-    ports:
-    - name: http
-      port: 9000
-      protocol: TCP
-      targetPort: 9000
-    resources:
-      limits:
-        cpu: "1"
-        memory: 4Gi
-      requests:
-        cpu: 100m
-        memory: 128Mi
-    spec:
-      rawInput: false
+  - manager: pip3
   tasks:
-  - name: standalone
+  - name: align-images
     resources:
-    - command: >-
-        export PYTHONPATH=./src/:$PYTHONPATH; python3 src/train_softmax.py
-        --logs_base_dir logs --models_base_dir src/models --data_dir $DATASET_DIR
-        --model_def models.inception_resnet_v1 --optimizer ADAM --learning_rate -1
-        --max_nrof_epochs 10 --keep_probability 0.8 --random_crop --random_flip --use_fixed_image_standardization
-        --learning_rate_schedule_file data/learning_rate_schedule_classifier_casia.txt  --embedding_size
-        128 --lfw_distance_metric 1 --lfw_use_flipped_images --lfw_subtract_mean --validation_set_split_ratio
-        0.05 --validate_every_n_epochs 5 --prelogits_norm_loss_factor 5e-4 --pretrained_model
-        $DATA_DIR/model-20170512-110547.ckpt-250000 --epoch_size 1000
+    - command: export PYTHONPATH=$SRC_DIR:$PYTHONPATH; python align/align_dataset_mtcnn.py
+        $CODE_DIR/training_faces /notebooks/faces_160 --image_size 160  --margin 32
       default_volume_mapping: true
-      {{- if eq .python_version.value "3" }}
       images:
-        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
-      {{- end }}
-      {{- if eq .python_version.value "2" }}
-      images:
-        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
-      {{- end }}
-      name: worker
-      replicas: 1
-      resources:
-        accelerators:
-          gpu: 1
-        limits:
-          cpu: "1"
-          memory: 8Gi
-        requests:
-          cpu: 100m
-          memory: 64Mi
-      restartPolicy: Never
-      workDir: $SRC_DIR
-  - name: align
-    resources:
-    - command: >-
-        export PYTHONPATH=./src/:$PYTHONPATH; python src/align/align_dataset_mtcnn.py
-        /notebooks/faces /notebooks/faces_160 --image_size 160  --margin 32
-      default_volume_mapping: true
-      {{- if eq .python_version.value "3" }}
-      images:
-        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
-      {{- end }}
-      {{- if eq .python_version.value "2" }}
-      images:
-        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
-      {{- end }}
-      name: worker
-      replicas: 1
-      resources:
-        limits:
-          cpu: "1"
-          memory: 8Gi
-        requests:
-          cpu: 100m
-          memory: 64Mi
-      restartPolicy: Never
-      workDir: $SRC_DIR
-  - name: train
-    resources:
-    - command: >-
-        export PYTHONPATH=./src/:$PYTHONPATH; python src/classifier.py TRAIN
-        /notebooks/faces_160/ $DATA_DIR/20180402-114759.pb $TRAINING_DIR/classifier-48.pkl
-      default_volume_mapping: true
-      {{- if eq .python_version.value "3" }}
-      images:
-        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
-      {{- end }}
-      {{- if eq .python_version.value "2" }}
-      images:
-        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
-      {{- end }}
-      name: worker
-      replicas: 1
-      resources:
-        limits:
-          cpu: "1"
-          memory: 8Gi
-        requests:
-          cpu: 100m
-          memory: 64Mi
-      restartPolicy: Never
-      workDir: $SRC_DIR
-  - name: validate
-    resources:
-    - command: >-
-        export PYTHONPATH=./src/:$PYTHONPATH; python src/classifier.py CLASSIFY
-        /notebooks/faces_160/ $DATA_DIR/20180402-114759.pb $TRAINING_DIR/classifier-48.pkl
-        --upload-model --upload-threshold 0.9
-      default_volume_mapping: true
-      {{- if eq .python_version.value "3" }}
-      images:
-        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
-      {{- end }}
-      {{- if eq .python_version.value "2" }}
-      images:
-        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
-      {{- end }}
+        cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
+        gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
       is_permanent: false
       maxRestartCount: 0
       name: worker
       replicas: 1
       resources:
+        accelerators:
+          gpu: 0
         limits:
           cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
           memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
         requests:
           cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
           memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: train-classifier
+    resources:
+    - command: python classifier.py TRAIN $CODE_DIR/faces_160/ $MODEL_DIR/20180402-114759.pb
+        $TRAINING_DIR/classifier.pkl
+      default_volume_mapping: true
+      images:
+        cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
+        gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
+      is_permanent: false
+      maxRestartCount: 0
+      name: worker
+      replicas: 1
+      resources:
+        accelerators:
+          gpu: 0
+        limits:
+          cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+        requests:
+          cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: validate-classifier
+    resources:
+    - command: python classifier.py CLASSIFY $CODE_DIR/faces_160/ $MODEL_DIR/20180402-114759.pb
+        $TRAINING_DIR/classifier.pkl --upload-model --upload-threshold 0.9
+      default_volume_mapping: true
+      images:
+        cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
+        gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
+      is_permanent: false
+      maxRestartCount: 0
+      name: worker
+      replicas: 1
+      resources:
+        accelerators:
+          gpu: 0
+        limits:
+          cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+        requests:
+          cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   - name: pipeline
     resources:
-    - command: python src/pipeline.py
+    - command: python pipeline.py
       default_volume_mapping: true
-      {{- if eq .python_version.value "3" }}
       images:
-        gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
-      {{- end }}
-      {{- if eq .python_version.value "2" }}
-      images:
-        gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
-        cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
-      {{- end }}
+        cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
+        gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
+      is_permanent: false
+      maxRestartCount: 0
       name: worker
       replicas: 1
       resources:
+        accelerators:
+          gpu: 0
         limits:
           cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
           memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
         requests:
           cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
           memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
-  - name: movidius
+  - name: pnet-grapth
     resources:
-    - command: >-
-        python3 -c 'from mvnc import mvncapi; print(mvncapi.enumerate_devices())';
-        exit 0; export PYTHONPATH=./src/:$PYTHONPATH; python3 src/kuberlab.py --image
-        $FACES_DIR/Nikolay_Makhotkin/2018-07-10-130846.jpg --classifier $TRAINING_DIR/classifier.pkl
-        --graph /notebooks/facenet.graph
+    - command: python3 movidius_converter.py --pnet --training_dir /tmp --do_push
       default_volume_mapping: true
       images:
         cpu: kuberlab/movidius-test:latest
-        gpu: kuberlab/tensorflow:gpu-27-1.7.0-full
+        gpu: ""
+      is_permanent: false
+      maxRestartCount: 0
       name: worker
       nodes: knode:movidius
       replicas: 1
       resources:
+        accelerators:
+          gpu: 0
         limits:
           cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
           memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
         requests:
           cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
           memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: onet-grapth
+    resources:
+    - command: python3 movidius_converter.py --onet --training_dir /tmp --do_push
+      default_volume_mapping: true
+      images:
+        cpu: kuberlab/movidius-test:latest
+        gpu: ""
+      is_permanent: false
+      maxRestartCount: 0
+      name: worker
+      nodes: knode:movidius
+      replicas: 1
+      resources:
+        accelerators:
+          gpu: 0
+        limits:
+          cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+        requests:
+          cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: rnet-grapth
+    resources:
+    - command: python3 movidius_converter.py --rnet --training_dir /tmp --do_push
+      default_volume_mapping: true
+      images:
+        cpu: kuberlab/movidius-test:latest
+        gpu: ""
+      is_permanent: false
+      maxRestartCount: 0
+      name: worker
+      nodes: knode:movidius
+      replicas: 1
+      resources:
+        accelerators:
+          gpu: 0
+        limits:
+          cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+        requests:
+          cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: fnet-grapth
+    resources:
+    - command: python3 movidius_converter.py --facenet --training_dir /tmp --do_push
+        --model_base_path $MODEL_DIR
+      default_volume_mapping: true
+      images:
+        cpu: kuberlab/movidius-test:latest
+        gpu: ""
+      is_permanent: false
+      maxRestartCount: 0
+      name: worker
+      nodes: knode:movidius
+      replicas: 1
+      resources:
+        accelerators:
+          gpu: 0
+        limits:
+          cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+        requests:
+          cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+      restartPolicy: Never
+      workDir: $SRC_DIR
+  - name: facenet-grapth
+    resources:
+    - command: python3 movidius_converter.py --all --training_dir /tmp --do_push --model_base_path
+        $MODEL_DIR
+      default_volume_mapping: true
+      images:
+        cpu: kuberlab/movidius-test:latest
+        gpu: ""
+      is_permanent: false
+      maxRestartCount: 0
+      name: worker
+      nodes: knode:movidius
+      replicas: 1
+      resources:
+        accelerators:
+          gpu: 0
+        limits:
+          cpu: "1"
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 8Gi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
+        requests:
+          cpu: 100m
+          cpu_mi: 0
+          execution_time: 0
+          gpu: 0
+          memory: 64Mi
+          memory_mb: 0
+          parallel_runs: 0
+          replicas: 0
       restartPolicy: Never
       workDir: $SRC_DIR
   uix:
   - default_volume_mapping: true
+    disabled: false
     displayName: Jupyter
-    front_api: /api/v1/ml2-proxy/kuberlab-demo/facenet/jupyter/
-    {{- if eq .python_version.value "3" }}
     images:
-      gpu: "kuberlab/tensorflow:gpu-36-{{.tensorflow_version.value}}-full"
-      cpu: "kuberlab/tensorflow:cpu-36-{{.tensorflow_version.value}}-full"
-    {{- end }}
-    {{- if eq .python_version.value "2" }}
-    images:
-      gpu: "kuberlab/tensorflow:gpu-27-{{.tensorflow_version.value}}-full"
-      cpu: "kuberlab/tensorflow:cpu-27-{{.tensorflow_version.value}}-full"
-    {{- end }}
+      cpu: kuberlab/tensorflow:cpu-36-1.7.0-full
+      gpu: kuberlab/tensorflow:gpu-36-1.7.0-full
     name: jupyter
     ports:
     - name: http
@@ -217,34 +344,68 @@ spec:
       protocol: TCP
       targetPort: 8888
     resources:
+      accelerators:
+        gpu: 0
       limits:
-        cpu_mi: 1000
-        memory_mb: 4295
+        cpu: "1"
+        cpu_mi: 0
+        execution_time: 0
+        gpu: 0
+        memory: 4Gi
+        memory_mb: 0
+        parallel_runs: 0
+        replicas: 0
       requests:
-        cpu_mi: 100
-        memory_mb: 68
+        cpu: 101m
+        cpu_mi: 0
+        execution_time: 0
+        gpu: 0
+        memory: 64Mi
+        memory_mb: 0
+        parallel_runs: 0
+        replicas: 0
   volumes:
   - clusterStorage: '{{ .storage.value }}'
+    isLibDir: false
+    isTrainLogDir: false
+    isWorkspaceLocal: false
+    mountPath: ""
     name: training
+    readOnly: false
+    subPath: ""
   - gitRepo:
       repository: https://github.com/kuberlab/facenet
+    isLibDir: false
+    isTrainLogDir: false
+    isWorkspaceLocal: false
+    mountPath: ""
     name: src
-    subPath: facenet
+    readOnly: false
+    subPath: facenet/src
   - clusterStorage: '{{ .storage.value }}'
     isLibDir: true
+    isTrainLogDir: false
+    isWorkspaceLocal: false
+    mountPath: ""
     name: lib
-  - datasetFS:
-      workspace: {{ .dataset.workspace }}
-      dataset: {{ .dataset.value }}
-      version: {{ .dataset.version }}
-    isLibDir: false
-    name: data
+    readOnly: false
+    subPath: ""
   - clusterStorage: '{{ .storage.value }}'
+    isLibDir: false
+    isTrainLogDir: false
+    isWorkspaceLocal: false
     mountPath: /notebooks
     name: code
+    readOnly: false
     subPath: code
   - datasetFS:
-      workspace: {{ .faces.workspace }}
-      dataset: {{ .faces.value }}
-      version: {{ .faces.version }}
-    name: faces
+      dataset: facenet-pretrained
+      version: 2018.4.2-vgg
+      workspace: kuberlab-demo
+    isLibDir: false
+    isTrainLogDir: false
+    isWorkspaceLocal: false
+    mountPath: ""
+    name: model
+    readOnly: false
+    subPath: ""
