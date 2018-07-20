@@ -24,7 +24,7 @@ def push(model,dirame):
         submit({'model':'{}:{}'.format(model,version)})
         logging.info("New model uploaded as '%s', version '%s'." % (model, version))
 
-def conver_onet(dir,do_push=False):
+def conver_onet(dir,prefix=None,do_push=False):
     out_dir = os.path.join(dir,"movidius")
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
@@ -58,7 +58,7 @@ def conver_onet(dir,do_push=False):
             logging.info('Validate Movidius: %s',cmd)
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
-            result = parse_check_ouput(result)
+            result = parse_check_ouput(result,prefix=prefix)
             submit(result)
             cmd = 'mvNCCompile {}/onet.meta -in input -on onet/output -o {}/onet.graph -s 12'.format(dir,out_dir)
             logging.info('Compile: %s',cmd)
@@ -67,7 +67,7 @@ def conver_onet(dir,do_push=False):
             if do_push:
                 push('facenet-onet',out_dir)
 
-def conver_rnet(dir,do_push=False):
+def conver_rnet(dir,prefix=None,do_push=False):
     out_dir = os.path.join(dir,"movidius")
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
@@ -101,7 +101,7 @@ def conver_rnet(dir,do_push=False):
             logging.info('Validate Movidius: %s',cmd)
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
-            result = parse_check_ouput(result)
+            result = parse_check_ouput(result,prefix=prefix)
             submit(result)
             cmd = 'mvNCCompile {}/rnet.meta -in input -on rnet/output -o {}/rnet.graph -s 12'.format(dir,out_dir)
             logging.info('Compile: %s',cmd)
@@ -175,6 +175,50 @@ def prepare_pnet(dir,do_push=False):
         out_dir = os.path.join(dir,"movidius")
         push('facenet-pnet',out_dir)
 
+def convert_facenet(dir,model_base_path,image_size,output_size,prefix=None,do_push=False):
+    import facenet
+    from models import inception_resnet_v1
+    out_dir = os.path.join(dir,"movidius")
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    dir = os.path.join(dir,"facenet")
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    tf.reset_default_graph()
+    with tf.Graph().as_default():
+        logging.info("Load FACENET graph")
+        image = tf.placeholder("float", shape=[1, image_size, image_size, 3], name='input')
+        prelogits, _ = inception_resnet_v1.inference(image, 1.0, phase_train=False, bottleneck_layer_size=output_size)
+        normalized = tf.nn.l2_normalize(prelogits, 1, name='l2_normalize')
+        output = tf.identity(normalized, name='output')
+
+        # Do not remove
+        saver = tf.train.Saver(tf.global_variables())
+
+        with tf.Session() as sess:
+            sess.run(tf.global_variables_initializer())
+            sess.run(tf.local_variables_initializer())
+            base_name = model_base_path
+            meta_file, ckpt_file = facenet.get_model_filenames(base_name)
+            logging.info("Restore FACENET graph from %s %s",meta_file, ckpt_file)
+            saver = tf.train.import_meta_graph(os.path.join(base_name, meta_file))
+            saver.restore(sess, os.path.join(base_name, ckpt_file))
+
+            logging.info("Freeze FACENET graph")
+            saver.save(sess, os.path.join(dir,'facenet'))
+
+            cmd = 'mvNCCheck {}/facenet.meta -in input -on output -s 12 -cs 0,1,2 -S 255'.format(dir)
+            logging.info('Validate Movidius: %s',cmd)
+            result = subprocess.check_output(cmd, shell=True).decode()
+            logging.info(result)
+            result = parse_check_ouput(result,prefix=prefix)
+            submit(result)
+            cmd = 'mvNCCompile {}/facenet.meta -in input -on output -o {}/facenet.graph -s 12'.format(dir,out_dir)
+            logging.info('Compile: %s',cmd)
+            result = subprocess.check_output(cmd, shell=True).decode()
+            logging.info(result)
+            if do_push:
+                push('movidius-facenet',out_dir)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -198,9 +242,35 @@ def parse_args():
         help='Build RNET'
     )
     parser.add_argument(
+        '--facenet',
+        action='store_true',
+        help='Build RNET'
+    )
+    parser.add_argument(
         '--do_push',
         action='store_true',
         help='Push model to catalog'
+    )
+    parser.add_argument(
+        '--all',
+        action='store_true',
+        help='Convert all'
+    )
+    parser.add_argument(
+        'model_base_path',
+        help='Base model path'
+    )
+    parser.add_argument(
+        '--output-size',
+        type=int,
+        default=512,
+        help='Facenet model output size'
+    )
+    parser.add_argument(
+        '--image_size',
+        type=int,
+        default=160,
+        help='Facenet model input size'
     )
     return parser.parse_args()
 
@@ -210,12 +280,20 @@ def main():
     tf.logging.set_verbosity(tf.logging.INFO)
     if not os.path.exists(args.training_dir):
         os.mkdir(args.training_dir)
+    if args.all:
+        conver_onet(args.training_dir,prefix='onet')
+        conver_rnet(args.training_dir,prefix='rnet')
+        prepare_pnet(args.training_dir)
+        convert_facenet(dir,args.model_base_path,args.image_size,args.output_size,prefix='facenet',do_push=True)
+        return
     if args.onet:
         conver_onet(args.training_dir,do_push=args.do_push)
     if args.rnet:
         conver_rnet(args.training_dir,do_push=args.do_push)
     if args.pnet:
         prepare_pnet(args.training_dir,do_push=args.do_push)
+    if args.rnet:
+        convert_facenet(dir,args.model_base_path,args.image_size,args.output_size,do_push=True)
 
 
 

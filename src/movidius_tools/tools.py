@@ -12,6 +12,6 @@ def parse_check_ouput(out,prefix=None):
                 if len(l)>1:
                     value = l[0]
                 if prefix is not None:
-                    name = '%s.%s'.format(prefix,name)
+                    name = '{}.{}'.format(prefix,name)
                 result[name] = value
     return result
