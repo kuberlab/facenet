@@ -303,7 +303,7 @@ def main():
     if args.pnet:
         prepare_pnet(args.training_dir,do_push=args.do_push)
     if args.facenet:
-        convert_facenet(dir,args.model_base_path,args.image_size,args.output_size,do_push=True)
+        convert_facenet(args.training_dir,args.model_base_path,args.image_size,args.output_size,do_push=True)
 
 
 
