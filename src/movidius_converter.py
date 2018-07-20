@@ -19,7 +19,8 @@ def push(model,dirame):
         from mlboardclient.api import client
         timestamp = datetime.datetime.now().strftime('%s')
         version = '1.0.0-%s' % timestamp
-        client.model_upload(model, version, dirame)
+        mlboard = client.Client()
+        mlboard.model_upload(model, version, dirame)
         submit({'model':'{}:{}'.format(model,version)})
         logging.info("New model uploaded as '%s', version '%s'." % (model, version))
 
