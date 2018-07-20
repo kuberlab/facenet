@@ -25,6 +25,7 @@ RUN pip install tensorflow==1.7.0 scipy sklearn opencv-python requests imageio P
 
 ENV PYTHONPATH /opt/movidius/caffe/python
 
+RUN pip install --no-cache-dir 'git+https://github.com/kuberlab/python-mlboardclient.git'
 # Install caffe
 #RUN apt-get install -y --no-install-recommends \
 #      build-essential \
