@@ -20,6 +20,7 @@ def push(model,dirame):
         timestamp = datetime.datetime.now().strftime('%s')
         version = '1.0.0-%s' % timestamp
         client.model_upload(model, version, dirame)
+        submit({'model':'{}:{}'.format(model,version)})
         logging.info("New model uploaded as '%s', version '%s'." % (model, version))
 
 def conver_onet(dir,do_push=False):
@@ -57,7 +58,6 @@ def conver_onet(dir,do_push=False):
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
             result = parse_check_ouput(result)
-            logging.info(result)
             submit(result)
             cmd = 'mvNCCompile {}/onet.meta -in input -on onet/output -o {}/onet.graph -s 12'.format(dir,out_dir)
             logging.info('Compile: %s',cmd)
