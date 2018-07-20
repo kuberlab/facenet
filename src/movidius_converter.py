@@ -6,7 +6,7 @@ import subprocess
 import logging
 import argparse
 from movidius_tools.tools import parse_check_ouput
-
+from mlboardclient.api import client
 
 
 def conver_onet(dir):
@@ -43,7 +43,9 @@ def conver_onet(dir):
             logging.info('Validate Movidius: %s',cmd)
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
-            logging.info(parse_check_ouput(result))
+            result = parse_check_ouput(result)
+            logging.info(result)
+            client.update_task_info(result)
             cmd = 'mvNCCompile {}/onet.meta -in input -on onet/output -o {}/onet.graph -s 12'.format(dir,out_dir)
             logging.info('Compile: %s',cmd)
             result = subprocess.check_output(cmd, shell=True).decode()

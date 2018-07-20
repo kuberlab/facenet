@@ -7,6 +7,9 @@ def parse_check_ouput(out):
         if len(p)>1:
             if p[0].startswith('Obtained '):
                 name = p[0][len('Obtained '):].strip()
-                value = p[1].strip().rstrip(',')
+                value = p[1].strip()
+                l = value.split(' ')
+                if len(l)>1:
+                    value = l[0]
                 result[name] = value
     return result
