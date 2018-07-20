@@ -13,7 +13,7 @@ SUCCEEDED = 'Succeeded'
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 mlboard = client.Client()
-run_tasks = ['align', 'train', 'validate']
+run_tasks = ['align-images', 'train-classifier', 'validate-classifier']
 
 
 def main():
