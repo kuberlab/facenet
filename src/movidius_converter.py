@@ -6,10 +6,23 @@ import subprocess
 import logging
 import argparse
 from movidius_tools.tools import parse_check_ouput
-from mlboardclient.api import client
+import datetime
 
 
-def conver_onet(dir):
+def submit(params):
+    if os.environ.get('PROJECT_ID',None) is not None:
+        from mlboardclient.api import client
+        client.update_task_info(params)
+
+def push(model,dirame):
+    if os.environ.get('PROJECT_ID',None) is not None:
+        from mlboardclient.api import client
+        timestamp = datetime.datetime.now().strftime('%s')
+        version = '1.0.0-%s' % timestamp
+        client.model_upload(model, version, dirame)
+        logging.info("New model uploaded as '%s', version '%s'." % (model, version))
+
+def conver_onet(dir,do_push=False):
     out_dir = os.path.join(dir,"movidius")
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
@@ -45,11 +58,13 @@ def conver_onet(dir):
             logging.info(result)
             result = parse_check_ouput(result)
             logging.info(result)
-            client.update_task_info(result)
+            submit(result)
             cmd = 'mvNCCompile {}/onet.meta -in input -on onet/output -o {}/onet.graph -s 12'.format(dir,out_dir)
             logging.info('Compile: %s',cmd)
             result = subprocess.check_output(cmd, shell=True).decode()
             logging.info(result)
+            if do_push:
+                push('facenet-onet',out_dir)
 
 def conver_rnet(dir):
     tf.reset_default_graph()
@@ -138,6 +153,11 @@ def parse_args():
         action='store_true',
         help='Build ONET'
     )
+    parser.add_argument(
+        '--do_push',
+        action='store_true',
+        help='Push model to catalog'
+    )
     return parser.parse_args()
 
 def main():
@@ -147,7 +167,7 @@ def main():
     if not os.path.exists(args.training_dir):
         os.mkdir(args.training_dir)
     if args.onet:
-        conver_onet(args.training_dir)
+        conver_onet(args.training_dir,do_push=args.do_push)
 
 def main1():
     dir = 'movidius'
