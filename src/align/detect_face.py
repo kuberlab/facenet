@@ -826,7 +826,7 @@ def detect_face_for_align(img, minsize, pnet, rnet, onet, threshold, factor):
     return total_boxes, points
 
 
-def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
+def detect_face(img, minsize, pnet, rnet, onet, threshold, factor,resolutions=None):
     """Detects faces in an image, and returns bounding boxes and points for them.
     img: input image
     minsize: minimum faces' size
@@ -850,8 +850,8 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
     #   factor_count += 1
 
     # first stage
-    resolutions = [(-14, 19), (-19, 27), (-26, 37), (37, 52), (73, 104), (-103, 146), (-145, 206), (-205, 290),
-                   (-288, 408)]
+    if resolutions is None:
+        resolutions = [(14, 19), (19, 27), (26, 37), (37, 52), (73, 104), (103, 146), (145, 206), (205, 290),(288, 408)]
     for r1 in resolutions:
         if r1[0] < 0:
             continue
