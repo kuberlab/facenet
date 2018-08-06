@@ -239,6 +239,7 @@ def main():
                     bounding_boxes, _ = detect_face.movidius_detect_face(
                         rgb_frame, pnets_proxy, rnet, onet, threshold
                     )
+                    detected = len(bounding_boxes)>0
 
                     # Check our current fps
                     end_time = time.time()
@@ -246,7 +247,10 @@ def main():
                         frame_rate = float(frame_count)/(end_time - start_time)
                         start_time = time.time()
                         frame_count = 0
-                        print('FPS: {}'.format(frame_rate))
+                        if detected:
+                            print('Full FPS: {}'.format(frame_rate))
+                        else:
+                            print('Pure FPS: {}'.format(frame_rate))
                 if use_classifier:
                     imgs = get_images(rgb_frame, bounding_boxes)
                     labels = []
