@@ -223,13 +223,14 @@ def main():
         pnets_proxy, rnet, onet = detect_face.create_movidius_mtcnn(
             sess, 'align', pnets_proxy, _rnet_proxy, _onet_proxy
         )
+        frame_src = cv2.imread(args.image).astype(np.float32)
+        if (frame_src.shape[1] != 640) or (frame_src.shape[0] != 480):
+            frame_src = cv2.resize(
+                frame_src, (640, 480), interpolation=cv2.INTER_AREA
+            )
         try:
             while True:
-                frame = cv2.imread(args.image).astype(np.float32)
-                if (frame.shape[1] != 640) or (frame.shape[0] != 480):
-                    frame = cv2.resize(
-                        frame, (640, 480), interpolation=cv2.INTER_AREA
-                    )
+                frame = frame_src.copy()
                 # BGR -> RGB
                 rgb_frame = frame[:, :, ::-1]
                 # print("Frame {}".format(frame.shape))
