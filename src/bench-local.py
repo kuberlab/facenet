@@ -120,7 +120,7 @@ def get_images(image, bounding_boxes):
     return images
 
 def main():
-    frame_interval = 3  # Number of frames after which to run face detection
+    frame_interval = 1  # Number of frames after which to run face detection
     fps_display_interval = 5  # seconds
     frame_rate = 0
     frame_count = 0
