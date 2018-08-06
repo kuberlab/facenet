@@ -479,7 +479,7 @@ def create_mult_movidius_mtcnn(sess, model_path, movidius_pnets, movidius_rnet, 
             out1 = out[:, :, :, 0:2]
             out2 = out[:, :, :, 2:]
             return out2, pnet_fun_1(out1)
-        return _pnet_res
+        return lambda: _pnet_res()
 
     for p in movidius_pnets:
         def _executor(p1):

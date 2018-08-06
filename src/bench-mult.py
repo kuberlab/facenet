@@ -125,7 +125,7 @@ def _mvc_exec(img, h, w, pnetGraph, pnetIn, pnetOut):
     def _out():
         output, userobj = pnetOut.read_elem()
         return output
-    return _out
+    return lambda: _out()
 
 
 class PNetHandler(object):
