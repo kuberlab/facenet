@@ -146,6 +146,7 @@ class PNetHandler(object):
 
 
 def main():
+    skip_classifier = True
     frame_interval = 1  # Number of frames after which to run face detection
     fps_display_interval = 10  # seconds
     frame_rate = 0
@@ -260,33 +261,34 @@ def main():
                             fifoIn, fifoOut, img, 'user object'
                         )
                         output, userobj = fifoOut.read_elem()
-                        try:
-                            output = output.reshape(1, model.shape_fit_[1])
-                            predictions = model.predict_proba(output)
-                        except ValueError as e:
-                            # Can not reshape
-                            print(
-                                "ERROR: Output from graph doesn't consistent"
-                                " with classifier model: %s" % e
-                            )
-                            continue
-                        best_class_indices = np.argmax(predictions, axis=1)
-                        best_class_probabilities = predictions[
-                            np.arange(len(best_class_indices)),
-                            best_class_indices
-                        ]
+                        if not skip_classifier:
+                            try:
+                                output = output.reshape(1, model.shape_fit_[1])
+                                predictions = model.predict_proba(output)
+                            except ValueError as e:
+                                # Can not reshape
+                                print(
+                                    "ERROR: Output from graph doesn't consistent"
+                                    " with classifier model: %s" % e
+                                )
+                                continue
+                            best_class_indices = np.argmax(predictions, axis=1)
+                            best_class_probabilities = predictions[
+                                np.arange(len(best_class_indices)),
+                                best_class_indices
+                            ]
 
-                        for i in range(len(best_class_indices)):
-                            bb = bounding_boxes[img_idx].astype(int)
-                            text = '%.1f%% %s' % (
-                                best_class_probabilities[i] * 100,
-                                class_names[best_class_indices[i]]
-                            )
-                            labels.append({
-                                'label': text,
-                                'left': bb[0],
-                                'top': bb[1] - 5
-                            })
+                            for i in range(len(best_class_indices)):
+                                bb = bounding_boxes[img_idx].astype(int)
+                                text = '%.1f%% %s' % (
+                                    best_class_probabilities[i] * 100,
+                                    class_names[best_class_indices[i]]
+                                )
+                                labels.append({
+                                    'label': text,
+                                    'left': bb[0],
+                                    'top': bb[1] - 5
+                                })
 
                 add_overlays(frame, bounding_boxes, int(frame_rate), labels=labels)
 
