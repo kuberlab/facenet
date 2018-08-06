@@ -238,7 +238,7 @@ def main():
             output, userobj = onetOut.read_elem()
             return output
 
-        pnets_proxy, rnet, onet = detect_face.create_movidius_mtcnn(
+        pnets_proxy, rnet, onet = detect_face.create_mult_movidius_mtcnn(
             sess, 'align', pnets_proxy, _rnet_proxy, _onet_proxy
         )
         frame_src = cv2.imread(args.image).astype(np.float32)
