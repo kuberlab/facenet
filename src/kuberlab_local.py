@@ -29,16 +29,20 @@ def get_parser():
         '--classifier',
         help='Path to classifier file.',
     )
+    parser.add_argument(
+        '--camera',
+        help='Full URL to network camera.',
+    )
     parser.add_argument('--tf-graph-path')
     return parser
 
 
 def get_size(scale):
     t = scale.split('x')
-    return int(t[0]),int(t[1])
+    return int(t[0]), int(t[1])
 
 
-def imresample(img, h,w):
+def imresample(img, h, w):
     im_data = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA)  # @UndefinedVariable
     return im_data
 
@@ -119,7 +123,10 @@ def main():
 
     use_classifier = args.classifier and args.tf_graph_path
 
-    video_capture = cv2.VideoCapture(0)
+    if args.camera:
+        video_capture = cv2.VideoCapture(args.camera)
+    else:
+        video_capture = cv2.VideoCapture(0)
 
     bounding_boxes = []
     labels = []
