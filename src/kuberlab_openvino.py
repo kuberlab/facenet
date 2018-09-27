@@ -205,7 +205,7 @@ def main():
         extensions = os.environ.get('INTEL_EXTENSIONS_PATH')
         plugin = ie.IEPlugin(device=args.device)
 
-        if extensions:
+        if extensions and "CPU" in args.device:
             for ext in extensions.split(':'):
                 plugin.add_cpu_extension(ext)
 
