@@ -1,0 +1,892 @@
+<?xml version="1.0" ?>
+<net batch="1" name="rnet" version="2">
+	<layers>
+		<layer id="0" name="input" precision="FP16" type="Input">
+			<output>
+				<port id="0">
+					<dim>1</dim>
+					<dim>3</dim>
+					<dim>24</dim>
+					<dim>24</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="1" name="rnet/conv1/Conv2D" precision="FP16" type="Convolution">
+			<data auto_pad="valid" dilation-x="1" dilation-y="1" group="1" kernel-x="3" kernel-y="3" output="28" pad-b="0" pad-r="0" pad-x="0" pad-y="0" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>3</dim>
+					<dim>24</dim>
+					<dim>24</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="368" size="1512"/>
+				<biases offset="1880" size="56"/>
+			</blobs>
+		</layer>
+		<layer id="2" name="rnet/prelu1/MaxPool_1" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="3" name="rnet/prelu1/Mul" precision="FP16" type="ScaleShift">
+			<input>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="312" size="56"/>
+				<biases offset="1936" size="56"/>
+			</blobs>
+		</layer>
+		<layer id="4" name="rnet/prelu1/Relu_1" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="5" name="rnet/prelu1/MaxPool_2" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="6" name="rnet/prelu1/Mul_2" precision="FP16" type="ScaleShift">
+			<input>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="256" size="56"/>
+				<biases offset="1992" size="56"/>
+			</blobs>
+		</layer>
+		<layer id="7" name="rnet/prelu1/MaxPool" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="8" name="rnet/prelu1/Relu" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="9" name="rnet/prelu1/Add" precision="FP16" type="Eltwise">
+			<data operation="sum"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="10" name="rnet/pool1" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="3" kernel-y="3" pad-b="1" pad-r="1" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,2,2" stride-x="2" stride-y="2"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>22</dim>
+					<dim>22</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>11</dim>
+					<dim>11</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="11" name="rnet/conv2/Conv2D" precision="FP16" type="Convolution">
+			<data auto_pad="valid" dilation-x="1" dilation-y="1" group="1" kernel-x="3" kernel-y="3" output="48" pad-b="0" pad-r="0" pad-x="0" pad-y="0" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>28</dim>
+					<dim>11</dim>
+					<dim>11</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="2048" size="24192"/>
+				<biases offset="26240" size="96"/>
+			</blobs>
+		</layer>
+		<layer id="12" name="rnet/prelu2/MaxPool_1" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="13" name="rnet/prelu2/Mul" precision="FP16" type="ScaleShift">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="26336" size="96"/>
+				<biases offset="26432" size="96"/>
+			</blobs>
+		</layer>
+		<layer id="14" name="rnet/prelu2/Relu_1" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="15" name="rnet/prelu2/MaxPool_2" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="16" name="rnet/prelu2/Mul_2" precision="FP16" type="ScaleShift">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="26528" size="96"/>
+				<biases offset="26624" size="96"/>
+			</blobs>
+		</layer>
+		<layer id="17" name="rnet/prelu2/MaxPool" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="18" name="rnet/prelu2/Relu" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="19" name="rnet/prelu2/Add" precision="FP16" type="Eltwise">
+			<data operation="sum"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="20" name="rnet/pool2" precision="FP16" type="Pooling">
+			<data auto_pad="valid" exclude-pad="true" kernel-x="3" kernel-y="3" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,2,2" stride-x="2" stride-y="2"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>9</dim>
+					<dim>9</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>4</dim>
+					<dim>4</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="21" name="rnet/conv3/Conv2D" precision="FP16" type="Convolution">
+			<data auto_pad="valid" dilation-x="1" dilation-y="1" group="1" kernel-x="2" kernel-y="2" output="64" pad-b="0" pad-r="0" pad-x="0" pad-y="0" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>48</dim>
+					<dim>4</dim>
+					<dim>4</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="26720" size="24576"/>
+				<biases offset="51296" size="128"/>
+			</blobs>
+		</layer>
+		<layer id="22" name="rnet/prelu3/MaxPool_1" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="23" name="rnet/prelu3/Mul" precision="FP16" type="ScaleShift">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="51424" size="128"/>
+				<biases offset="51552" size="128"/>
+			</blobs>
+		</layer>
+		<layer id="24" name="rnet/prelu3/Relu_1" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="25" name="rnet/prelu3/MaxPool_2" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="26" name="rnet/prelu3/Mul_2" precision="FP16" type="ScaleShift">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="51680" size="128"/>
+				<biases offset="51808" size="128"/>
+			</blobs>
+		</layer>
+		<layer id="27" name="rnet/prelu3/MaxPool" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="28" name="rnet/prelu3/Relu" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="29" name="rnet/prelu3/Add" precision="FP16" type="Eltwise">
+			<data operation="sum"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="30" name="rnet/conv4/Reshape" precision="FP16" type="Reshape">
+			<data axis="0" dim="1,576" num_axes="-1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>576</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="31" name="rnet/conv4/conv4/MatMul" precision="FP16" type="FullyConnected">
+			<data out-size="128"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>576</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="51936" size="147456"/>
+				<biases offset="199392" size="256"/>
+			</blobs>
+		</layer>
+		<layer id="32" name="rnet/prelu4/Mul" precision="FP16" type="ScaleShift">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="199648" size="256"/>
+				<biases offset="199904" size="256"/>
+			</blobs>
+		</layer>
+		<layer id="33" name="rnet/prelu4/Relu_1" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="34" name="rnet/prelu4/Mul_2" precision="FP16" type="ScaleShift">
+			<input>
+				<port id="1">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="0" size="256"/>
+				<biases offset="200160" size="256"/>
+			</blobs>
+		</layer>
+		<layer id="35" name="rnet/prelu4/Relu" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="36" name="rnet/prelu4/Add" precision="FP16" type="Eltwise">
+			<data operation="sum"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="37" name="rnet/conv5-1/conv5-1/MatMul" precision="FP16" type="FullyConnected">
+			<data out-size="2"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>2</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="200416" size="512"/>
+				<biases offset="200928" size="4"/>
+			</blobs>
+		</layer>
+		<layer id="38" name="Reshape" precision="FP16" type="Reshape">
+			<data axis="0" dim="1,2,1,1" num_axes="-1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>2</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>2</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="39" name="rnet/conv5-2/conv5-2/MatMul" precision="FP16" type="FullyConnected">
+			<data out-size="4"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>128</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>4</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="200932" size="1024"/>
+				<biases offset="201956" size="8"/>
+			</blobs>
+		</layer>
+		<layer id="40" name="Reshape_1" precision="FP16" type="Reshape">
+			<data axis="0" dim="1,4,1,1" num_axes="-1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>4</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>4</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="41" name="rnet/output0" precision="FP16" type="Concat">
+			<data axis="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>2</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>4</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2">
+					<dim>1</dim>
+					<dim>6</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="42" name="rnet/output" precision="FP16" type="Pooling">
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>6</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>6</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+	</layers>
+	<edges>
+		<edge from-layer="0" from-port="0" to-layer="1" to-port="0"/>
+		<edge from-layer="1" from-port="3" to-layer="2" to-port="0"/>
+		<edge from-layer="2" from-port="1" to-layer="3" to-port="1"/>
+		<edge from-layer="3" from-port="3" to-layer="4" to-port="0"/>
+		<edge from-layer="4" from-port="1" to-layer="5" to-port="0"/>
+		<edge from-layer="5" from-port="1" to-layer="6" to-port="1"/>
+		<edge from-layer="1" from-port="3" to-layer="7" to-port="0"/>
+		<edge from-layer="7" from-port="1" to-layer="8" to-port="0"/>
+		<edge from-layer="6" from-port="3" to-layer="9" to-port="0"/>
+		<edge from-layer="8" from-port="1" to-layer="9" to-port="1"/>
+		<edge from-layer="9" from-port="2" to-layer="10" to-port="0"/>
+		<edge from-layer="10" from-port="1" to-layer="11" to-port="0"/>
+		<edge from-layer="11" from-port="3" to-layer="12" to-port="0"/>
+		<edge from-layer="12" from-port="1" to-layer="13" to-port="0"/>
+		<edge from-layer="13" from-port="3" to-layer="14" to-port="0"/>
+		<edge from-layer="14" from-port="1" to-layer="15" to-port="0"/>
+		<edge from-layer="15" from-port="1" to-layer="16" to-port="0"/>
+		<edge from-layer="11" from-port="3" to-layer="17" to-port="0"/>
+		<edge from-layer="17" from-port="1" to-layer="18" to-port="0"/>
+		<edge from-layer="16" from-port="3" to-layer="19" to-port="0"/>
+		<edge from-layer="18" from-port="1" to-layer="19" to-port="1"/>
+		<edge from-layer="19" from-port="2" to-layer="20" to-port="0"/>
+		<edge from-layer="20" from-port="1" to-layer="21" to-port="0"/>
+		<edge from-layer="21" from-port="3" to-layer="22" to-port="0"/>
+		<edge from-layer="22" from-port="1" to-layer="23" to-port="0"/>
+		<edge from-layer="23" from-port="3" to-layer="24" to-port="0"/>
+		<edge from-layer="24" from-port="1" to-layer="25" to-port="0"/>
+		<edge from-layer="25" from-port="1" to-layer="26" to-port="0"/>
+		<edge from-layer="21" from-port="3" to-layer="27" to-port="0"/>
+		<edge from-layer="27" from-port="1" to-layer="28" to-port="0"/>
+		<edge from-layer="26" from-port="3" to-layer="29" to-port="0"/>
+		<edge from-layer="28" from-port="1" to-layer="29" to-port="1"/>
+		<edge from-layer="29" from-port="2" to-layer="30" to-port="0"/>
+		<edge from-layer="30" from-port="1" to-layer="31" to-port="0"/>
+		<edge from-layer="31" from-port="3" to-layer="32" to-port="0"/>
+		<edge from-layer="32" from-port="3" to-layer="33" to-port="0"/>
+		<edge from-layer="33" from-port="1" to-layer="34" to-port="1"/>
+		<edge from-layer="31" from-port="3" to-layer="35" to-port="0"/>
+		<edge from-layer="34" from-port="3" to-layer="36" to-port="0"/>
+		<edge from-layer="35" from-port="1" to-layer="36" to-port="1"/>
+		<edge from-layer="36" from-port="2" to-layer="37" to-port="0"/>
+		<edge from-layer="37" from-port="3" to-layer="38" to-port="0"/>
+		<edge from-layer="36" from-port="2" to-layer="39" to-port="0"/>
+		<edge from-layer="39" from-port="3" to-layer="40" to-port="0"/>
+		<edge from-layer="38" from-port="1" to-layer="41" to-port="0"/>
+		<edge from-layer="40" from-port="1" to-layer="41" to-port="1"/>
+		<edge from-layer="41" from-port="2" to-layer="42" to-port="0"/>
+	</edges>
+</net>
