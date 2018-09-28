@@ -1,4 +1,3 @@
-from mvnc import mvncapi as mvnc
 import numpy as np
 import pickle
 import cv2
@@ -44,6 +43,13 @@ def get_parser():
         '--device',
         help='Device for openVINO.',
         default="MYRIAD",
+        choices=["CPU", "MYRIAD"]
+    )
+    parser.add_argument(
+        '--camera-device',
+        help='Lib for camera to use.',
+        default="PI",
+        choices=["PI", "CV"]
     )
     parser.add_argument(
         '--graph',
@@ -129,30 +135,39 @@ def get_images(image, bounding_boxes):
     return images
 
 
-def _mvc_exec(img, h, w, pnetGraph, pnetIn, pnetOut):
-    # print("Exec {}x{} on {}".format(h, w, img.shape))
-    pnetGraph.queue_inference_with_fifo_elem(pnetIn, pnetOut, img, 'pnet')
-    output, userobj = pnetOut.read_elem()
-    return output
-
-
 class PNetHandler(object):
-    def __init__(self, device, h, w):
-        with open('movidius/pnet-{}x{}.graph'.format(h, w), mode='rb') as f:
-            graphFileBuff = f.read()
-        self.pnetGraph = mvnc.Graph('PNet Graph {}x{}'.format(h, w))
-        self.pnetIn, self.pnetOut = self.pnetGraph.allocate_with_fifos(device, graphFileBuff)
+    def __init__(self, plugin, h, w):
+        net = ie.IENetwork.from_ir(*net_filenames(plugin, 'pnet_{}x{}'.format(h, w)))
+
+        print(net.inputs)
+        self.input_name = list(net.inputs.keys())[0]
+        self.output_name = net.outputs[0]
+        self.exec_net = plugin.load(net)
         self.h = h
         self.w = w
 
     def destroy(self):
-        self.pnetIn.destroy()
-        self.pnetOut.destroy()
-        self.pnetGraph.destroy()
+        pass
 
     def proxy(self):
-        f = (lambda x: _mvc_exec(x, self.h, self.w, self.pnetGraph, self.pnetIn, self.pnetOut))
-        return f, self.h, self.w
+        def _exec(img):
+            # Channel first
+            img = img.transpose([0, 3, 1, 2])
+            output = self.exec_net.infer({self.input_name: img})
+            output = output[self.output_name]
+            # Channel last
+            output = output.transpose([0, 2, 3, 1])
+            return output
+
+        return _exec, self.h, self.w
+
+
+def net_filenames(plugin, net_name):
+    device = plugin.device.lower()
+    base_name = 'openvino-{}/{}'.format(device, net_name)
+    xml_name = base_name + '.xml'
+    bin_name = base_name + '.bin'
+    return xml_name, bin_name
 
 
 def main():
@@ -167,33 +182,33 @@ def main():
 
     use_classifier = bool(args.classifier)
 
-    devices = mvnc.enumerate_devices()
-    if len(devices) == 0:
-        print('No devices found')
-        quit()
-    device = mvnc.Device(devices[0])
-    device.open()
+    extensions = os.environ.get('INTEL_EXTENSIONS_PATH')
+    plugin = ie.IEPlugin(device=args.device)
+
+    if extensions and "CPU" in args.device:
+        for ext in extensions.split(':'):
+            print("LOAD extension from {}".format(ext))
+            plugin.add_cpu_extension(ext)
 
     print('Load PNET')
 
     pnets = []
     for r in parse_resolutions(args.resolutions):
-        p = PNetHandler(device, r[0], r[1])
+        p = PNetHandler(plugin, r[0], r[1])
         pnets.append(p)
 
     print('Load RNET')
-
-    with open('movidius/rnet.graph', mode='rb') as f:
-        rgraphFileBuff = f.read()
-    rnetGraph = mvnc.Graph("RNet Graph")
-    rnetIn, rnetOut = rnetGraph.allocate_with_fifos(device, rgraphFileBuff)
+    net = ie.IENetwork.from_ir(*net_filenames(plugin, 'rnet'))
+    rnet_input_name = list(net.inputs.keys())[0]
+    rnet_output_name = net.outputs[0]
+    r_net = plugin.load(net)
 
     print('Load ONET')
 
-    with open('movidius/onet.graph', mode='rb') as f:
-        ographFileBuff = f.read()
-    onetGraph = mvnc.Graph("ONet Graph")
-    onetIn, onetOut = onetGraph.allocate_with_fifos(device, ographFileBuff)
+    net = ie.IENetwork.from_ir(*net_filenames(plugin, 'onet'))
+    onet_input_name = list(net.inputs.keys())[0]
+    onet_output_name = net.outputs[0]
+    o_net = plugin.load(net)
 
     if use_classifier:
         print('Load FACENET')
@@ -202,14 +217,9 @@ def main():
         weights_file = model_file[:-3] + 'bin'
 
         net = ie.IENetwork.from_ir(model_file, weights_file)
-        extensions = os.environ.get('INTEL_EXTENSIONS_PATH')
-        plugin = ie.IEPlugin(device=args.device)
-
-        if extensions and "CPU" in args.device:
-            for ext in extensions.split(':'):
-                plugin.add_cpu_extension(ext)
-
-        exec_net = plugin.load(net)
+        facenet_input = list(net.inputs.keys())[0]
+        facenet_output = net.outputs[0]
+        face_net = plugin.load(net)
 
         # Load classifier
         with open(args.classifier, 'rb') as f:
@@ -226,7 +236,11 @@ def main():
     if args.image is None:
         from imutils.video import VideoStream
         from imutils.video import FPS
-        vs = VideoStream(usePiCamera=True, resolution=(640, 480), framerate=24).start()
+        vs = VideoStream(
+            usePiCamera=args.camera_device == "PI",
+            resolution=(640, 480),
+            framerate=24
+        ).start()
         time.sleep(1)
         fps = FPS().start()
 
@@ -239,14 +253,13 @@ def main():
             pnets_proxy.append(p.proxy())
 
         def _rnet_proxy(img):
-            rnetGraph.queue_inference_with_fifo_elem(rnetIn, rnetOut, img, 'rnet')
-            output, userobj = rnetOut.read_elem()
-            return output
+            output = r_net.infer({rnet_input_name: img})
+            return output[rnet_output_name]
 
         def _onet_proxy(img):
-            onetGraph.queue_inference_with_fifo_elem(onetIn, onetOut, img, 'onet')
-            output, userobj = onetOut.read_elem()
-            return output
+            img = img.transpose([2, 0, 1]).reshape([1, 3, 48, 48])
+            output = o_net.infer({onet_input_name: img})
+            return output[onet_output_name]
 
         pnets_proxy, rnet, onet = detect_face.create_movidius_mtcnn(
             sess, 'align', pnets_proxy, _rnet_proxy, _onet_proxy
@@ -285,12 +298,11 @@ def main():
                     labels = []
                     for img_idx, img in enumerate(imgs):
                         img = img.astype(np.float32)
-                        print(img.shape)
-
-                        input_name = list(net.inputs.keys())[0]
 
                         # Infer
-                        output = exec_net.infer({input_name: img})
+                        img = img.transpose([2, 0, 1]).reshape([1, 3, 160, 160])
+                        output = face_net.infer({facenet_input: img})
+                        output = output[facenet_output]
                         try:
                             output = output.reshape(1, model.shape_fit_[1])
                             predictions = model.predict_proba(output)
@@ -302,7 +314,6 @@ def main():
                             )
                             continue
 
-                        print(output.shape)
                         best_class_indices = np.argmax(predictions, axis=1)
                         best_class_probabilities = predictions[
                             np.arange(len(best_class_indices)),
@@ -348,19 +359,6 @@ def main():
         fps.stop()
         vs.stop()
         cv2.destroyAllWindows()
-    if use_classifier:
-        fifoIn.destroy()
-        fifoOut.destroy()
-        fGraph.destroy()
-    rnetIn.destroy()
-    rnetOut.destroy()
-    rnetGraph.destroy()
-    onetIn.destroy()
-    onetOut.destroy()
-    onetGraph.destroy()
-    for p in pnets:
-        p.destroy()
-    device.close()
     print('Finished')
 
 

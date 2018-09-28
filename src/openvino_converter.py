@@ -209,7 +209,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--training_dir',
-        help='Training dir'
+        help='Training dir',
+        required=True,
     )
 
     parser.add_argument(
