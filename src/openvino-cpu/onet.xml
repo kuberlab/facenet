@@ -30,8 +30,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1408" size="3456"/>
-				<biases offset="4864" size="128"/>
+				<weights offset="2560" size="3456"/>
+				<biases offset="6016" size="128"/>
 			</blobs>
 		</layer>
 		<layer id="2" name="onet/prelu1/MaxPool_1" precision="FP32" type="Pooling">
@@ -55,7 +55,7 @@
 		</layer>
 		<layer id="3" name="onet/prelu1/Mul" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="0">
+				<port id="1">
 					<dim>1</dim>
 					<dim>32</dim>
 					<dim>46</dim>
@@ -71,8 +71,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="4992" size="128"/>
-				<biases offset="5120" size="128"/>
+				<weights offset="2432" size="128"/>
+				<biases offset="6144" size="128"/>
 			</blobs>
 		</layer>
 		<layer id="4" name="onet/prelu1/Relu_1" precision="FP32" type="ReLU">
@@ -130,8 +130,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1280" size="128"/>
-				<biases offset="5248" size="128"/>
+				<weights offset="2304" size="128"/>
+				<biases offset="6272" size="128"/>
 			</blobs>
 		</layer>
 		<layer id="7" name="onet/prelu1/MaxPool" precision="FP32" type="Pooling">
@@ -234,8 +234,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="5376" size="73728"/>
-				<biases offset="79104" size="256"/>
+				<weights offset="6400" size="73728"/>
+				<biases offset="80128" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="12" name="onet/prelu2/MaxPool_1" precision="FP32" type="Pooling">
@@ -259,7 +259,7 @@
 		</layer>
 		<layer id="13" name="onet/prelu2/Mul" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="0">
+				<port id="1">
 					<dim>1</dim>
 					<dim>64</dim>
 					<dim>21</dim>
@@ -275,8 +275,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="79360" size="256"/>
-				<biases offset="79616" size="256"/>
+				<weights offset="2048" size="256"/>
+				<biases offset="80384" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="14" name="onet/prelu2/Relu_1" precision="FP32" type="ReLU">
@@ -318,7 +318,7 @@
 		</layer>
 		<layer id="16" name="onet/prelu2/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="1">
+				<port id="0">
 					<dim>1</dim>
 					<dim>64</dim>
 					<dim>21</dim>
@@ -334,8 +334,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1024" size="256"/>
-				<biases offset="79872" size="256"/>
+				<weights offset="80640" size="256"/>
+				<biases offset="80896" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="17" name="onet/prelu2/MaxPool" precision="FP32" type="Pooling">
@@ -438,8 +438,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="80128" size="147456"/>
-				<biases offset="227584" size="256"/>
+				<weights offset="81152" size="147456"/>
+				<biases offset="228608" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="22" name="onet/prelu3/MaxPool_1" precision="FP32" type="Pooling">
@@ -479,8 +479,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="227840" size="256"/>
-				<biases offset="228096" size="256"/>
+				<weights offset="228864" size="256"/>
+				<biases offset="229120" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="24" name="onet/prelu3/Relu_1" precision="FP32" type="ReLU">
@@ -538,8 +538,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="228352" size="256"/>
-				<biases offset="228608" size="256"/>
+				<weights offset="229376" size="256"/>
+				<biases offset="229632" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="27" name="onet/prelu3/MaxPool" precision="FP32" type="Pooling">
@@ -642,8 +642,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="228864" size="131072"/>
-				<biases offset="359936" size="512"/>
+				<weights offset="229888" size="131072"/>
+				<biases offset="360960" size="512"/>
 			</blobs>
 		</layer>
 		<layer id="32" name="onet/prelu4/MaxPool_1" precision="FP32" type="Pooling">
@@ -683,8 +683,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="360448" size="512"/>
-				<biases offset="360960" size="512"/>
+				<weights offset="361472" size="512"/>
+				<biases offset="361984" size="512"/>
 			</blobs>
 		</layer>
 		<layer id="34" name="onet/prelu4/Relu_1" precision="FP32" type="ReLU">
@@ -742,8 +742,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="361472" size="512"/>
-				<biases offset="361984" size="512"/>
+				<weights offset="362496" size="512"/>
+				<biases offset="363008" size="512"/>
 			</blobs>
 		</layer>
 		<layer id="37" name="onet/prelu4/MaxPool" precision="FP32" type="Pooling">
@@ -840,8 +840,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="362496" size="1179648"/>
-				<biases offset="1542144" size="1024"/>
+				<weights offset="363520" size="1179648"/>
+				<biases offset="1543168" size="1024"/>
 			</blobs>
 		</layer>
 		<layer id="42" name="onet/prelu5/Mul" precision="FP32" type="ScaleShift">
@@ -858,8 +858,8 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="0" size="1024"/>
-				<biases offset="1543168" size="1024"/>
+				<weights offset="1024" size="1024"/>
+				<biases offset="1544192" size="1024"/>
 			</blobs>
 		</layer>
 		<layer id="43" name="onet/prelu5/Relu_1" precision="FP32" type="ReLU">
@@ -878,7 +878,7 @@
 		</layer>
 		<layer id="44" name="onet/prelu5/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="0">
+				<port id="1">
 					<dim>1</dim>
 					<dim>256</dim>
 				</port>
@@ -890,7 +890,7 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1544192" size="1024"/>
+				<weights offset="0" size="1024"/>
 				<biases offset="1545216" size="1024"/>
 			</blobs>
 		</layer>
@@ -927,43 +927,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="47" name="onet/conv6-1/conv6-1/MatMul" precision="FP32" type="FullyConnected">
-			<data out-size="2"/>
-			<input>
-				<port id="0">
-					<dim>1</dim>
-					<dim>256</dim>
-				</port>
-			</input>
-			<output>
-				<port id="3">
-					<dim>1</dim>
-					<dim>2</dim>
-				</port>
-			</output>
-			<blobs>
-				<weights offset="1546240" size="2048"/>
-				<biases offset="1548288" size="8"/>
-			</blobs>
-		</layer>
-		<layer id="48" name="Reshape" precision="FP32" type="Reshape">
-			<data axis="0" dim="1,2,1,1" num_axes="-1"/>
-			<input>
-				<port id="0">
-					<dim>1</dim>
-					<dim>2</dim>
-				</port>
-			</input>
-			<output>
-				<port id="1">
-					<dim>1</dim>
-					<dim>2</dim>
-					<dim>1</dim>
-					<dim>1</dim>
-				</port>
-			</output>
-		</layer>
-		<layer id="49" name="onet/conv6-2/conv6-2/MatMul" precision="FP32" type="FullyConnected">
+		<layer id="47" name="onet/conv6-2/conv6-2/MatMul" precision="FP32" type="FullyConnected">
 			<data out-size="4"/>
 			<input>
 				<port id="0">
@@ -978,28 +942,11 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1548296" size="4096"/>
-				<biases offset="1552392" size="16"/>
+				<weights offset="1546240" size="4096"/>
+				<biases offset="1550336" size="16"/>
 			</blobs>
 		</layer>
-		<layer id="50" name="Reshape_1" precision="FP32" type="Reshape">
-			<data axis="0" dim="1,4,1,1" num_axes="-1"/>
-			<input>
-				<port id="0">
-					<dim>1</dim>
-					<dim>4</dim>
-				</port>
-			</input>
-			<output>
-				<port id="1">
-					<dim>1</dim>
-					<dim>4</dim>
-					<dim>1</dim>
-					<dim>1</dim>
-				</port>
-			</output>
-		</layer>
-		<layer id="51" name="onet/conv6-3/conv6-3/MatMul" precision="FP32" type="FullyConnected">
+		<layer id="48" name="onet/conv6-3/conv6-3/MatMul" precision="FP32" type="FullyConnected">
 			<data out-size="10"/>
 			<input>
 				<port id="0">
@@ -1014,74 +961,40 @@
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1552408" size="10240"/>
-				<biases offset="1562648" size="40"/>
+				<weights offset="1550352" size="10240"/>
+				<biases offset="1560592" size="40"/>
 			</blobs>
 		</layer>
-		<layer id="52" name="Reshape_2" precision="FP32" type="Reshape">
-			<data axis="0" dim="1,10,1,1" num_axes="-1"/>
+		<layer id="49" name="onet/conv6-1/conv6-1/MatMul" precision="FP32" type="FullyConnected">
+			<data out-size="2"/>
 			<input>
 				<port id="0">
 					<dim>1</dim>
-					<dim>10</dim>
-				</port>
-			</input>
-			<output>
-				<port id="1">
-					<dim>1</dim>
-					<dim>10</dim>
-					<dim>1</dim>
-					<dim>1</dim>
-				</port>
-			</output>
-		</layer>
-		<layer id="53" name="onet/output0" precision="FP32" type="Concat">
-			<data axis="1"/>
-			<input>
-				<port id="0">
-					<dim>1</dim>
-					<dim>2</dim>
-					<dim>1</dim>
-					<dim>1</dim>
-				</port>
-				<port id="1">
-					<dim>1</dim>
-					<dim>4</dim>
-					<dim>1</dim>
-					<dim>1</dim>
-				</port>
-				<port id="2">
-					<dim>1</dim>
-					<dim>10</dim>
-					<dim>1</dim>
-					<dim>1</dim>
+					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
-					<dim>16</dim>
-					<dim>1</dim>
-					<dim>1</dim>
+					<dim>2</dim>
 				</port>
 			</output>
+			<blobs>
+				<weights offset="1560632" size="2048"/>
+				<biases offset="1562680" size="8"/>
+			</blobs>
 		</layer>
-		<layer id="54" name="onet/output" precision="FP32" type="Pooling">
-			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
+		<layer id="50" name="onet/prob1" precision="FP32" type="SoftMax">
 			<input>
 				<port id="0">
 					<dim>1</dim>
-					<dim>16</dim>
-					<dim>1</dim>
-					<dim>1</dim>
+					<dim>2</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
-					<dim>16</dim>
-					<dim>1</dim>
-					<dim>1</dim>
+					<dim>2</dim>
 				</port>
 			</output>
 		</layer>
@@ -1089,7 +1002,7 @@
 	<edges>
 		<edge from-layer="0" from-port="0" to-layer="1" to-port="0"/>
 		<edge from-layer="1" from-port="3" to-layer="2" to-port="0"/>
-		<edge from-layer="2" from-port="1" to-layer="3" to-port="0"/>
+		<edge from-layer="2" from-port="1" to-layer="3" to-port="1"/>
 		<edge from-layer="3" from-port="3" to-layer="4" to-port="0"/>
 		<edge from-layer="4" from-port="1" to-layer="5" to-port="0"/>
 		<edge from-layer="5" from-port="1" to-layer="6" to-port="1"/>
@@ -1100,10 +1013,10 @@
 		<edge from-layer="9" from-port="2" to-layer="10" to-port="0"/>
 		<edge from-layer="10" from-port="1" to-layer="11" to-port="0"/>
 		<edge from-layer="11" from-port="3" to-layer="12" to-port="0"/>
-		<edge from-layer="12" from-port="1" to-layer="13" to-port="0"/>
+		<edge from-layer="12" from-port="1" to-layer="13" to-port="1"/>
 		<edge from-layer="13" from-port="3" to-layer="14" to-port="0"/>
 		<edge from-layer="14" from-port="1" to-layer="15" to-port="0"/>
-		<edge from-layer="15" from-port="1" to-layer="16" to-port="1"/>
+		<edge from-layer="15" from-port="1" to-layer="16" to-port="0"/>
 		<edge from-layer="11" from-port="3" to-layer="17" to-port="0"/>
 		<edge from-layer="17" from-port="1" to-layer="18" to-port="0"/>
 		<edge from-layer="16" from-port="3" to-layer="19" to-port="0"/>
@@ -1134,19 +1047,13 @@
 		<edge from-layer="40" from-port="1" to-layer="41" to-port="0"/>
 		<edge from-layer="41" from-port="3" to-layer="42" to-port="1"/>
 		<edge from-layer="42" from-port="3" to-layer="43" to-port="0"/>
-		<edge from-layer="43" from-port="1" to-layer="44" to-port="0"/>
+		<edge from-layer="43" from-port="1" to-layer="44" to-port="1"/>
 		<edge from-layer="41" from-port="3" to-layer="45" to-port="0"/>
 		<edge from-layer="44" from-port="3" to-layer="46" to-port="0"/>
 		<edge from-layer="45" from-port="1" to-layer="46" to-port="1"/>
 		<edge from-layer="46" from-port="2" to-layer="47" to-port="0"/>
-		<edge from-layer="47" from-port="3" to-layer="48" to-port="0"/>
+		<edge from-layer="46" from-port="2" to-layer="48" to-port="0"/>
 		<edge from-layer="46" from-port="2" to-layer="49" to-port="0"/>
 		<edge from-layer="49" from-port="3" to-layer="50" to-port="0"/>
-		<edge from-layer="46" from-port="2" to-layer="51" to-port="0"/>
-		<edge from-layer="51" from-port="3" to-layer="52" to-port="0"/>
-		<edge from-layer="48" from-port="1" to-layer="53" to-port="0"/>
-		<edge from-layer="50" from-port="1" to-layer="53" to-port="1"/>
-		<edge from-layer="52" from-port="1" to-layer="53" to-port="2"/>
-		<edge from-layer="53" from-port="3" to-layer="54" to-port="0"/>
 	</edges>
 </net>

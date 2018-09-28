@@ -37,39 +37,38 @@ def conver_onet(dir, data_type='FP32', prefix=None, do_push=False):
         os.mkdir(dir)
 
     tf.reset_default_graph()
-    with tf.Graph().as_default() as graph:
-        with tf.Session() as sess:
-            data = tf.placeholder(tf.float32, (1, 48, 48, 3), 'input')
-            logging.info("Load ONET graph")
-            with tf.variable_scope('onet'):
-                onet = df.ONetMovidius({'data': data})
-            logging.info("Load ONET weights")
-            with tf.variable_scope('onet', reuse=tf.AUTO_REUSE):
-                onet.load(os.path.join('align', 'det3.npy'), sess)
-            logging.info("Create ONET ouput layer")
-            onet_output0 = graph.get_tensor_by_name('onet/conv6-1/conv6-1:0')
-            onet_output1 = graph.get_tensor_by_name('onet/conv6-2/conv6-2:0')
-            onet_output2 = graph.get_tensor_by_name('onet/conv6-3/conv6-3:0')
-            onet_output01 = tf.reshape(onet_output0, [1, 1, 1, 2])
-            onet_output11 = tf.reshape(onet_output1, [1, 1, 1, 4])
-            onet_output21 = tf.reshape(onet_output2, [1, 1, 1, 10])
-            rnet_output = tf.concat([onet_output01, onet_output11, onet_output21], -1, name='onet/output0')
-            tf.nn.max_pool(rnet_output, ksize=[1, 1, 1, 1], strides=[1, 1, 1, 1], padding='SAME', name='onet/output')
-            logging.info("Freeze ONET graph")
+    with tf.Graph().as_default() as graph, tf.Session() as sess:
+        data = tf.placeholder(tf.float32, (1, 48, 48, 3), 'input')
+        logging.info("Load ONET graph")
+        with tf.variable_scope('onet'):
+            onet = df.ONetOpenVINO({'data': data})
+            onet.load(os.path.join('align', 'det3.npy'), sess)
 
-            output_graph_def = tf.graph_util.convert_variables_to_constants(
-                sess, graph.as_graph_def(), ['onet/output']
-            )
-            # Finally we serialize and dump the output graph to the filesystem
-            with tf.gfile.GFile(os.path.join(dir, 'onet.pb'), "wb") as f:
-                f.write(output_graph_def.SerializeToString())
+        logging.info("Create ONET output layer")
 
-            cmd = 'mo_tf.py --input_model {0}/onet.pb --output_dir {0} --data_type {1}'.format(dir, data_type)
-            logging.info('Compile: %s', cmd)
-            result = subprocess.check_output(cmd, shell=True).decode()
-            logging.info(result)
-            if do_push:
-                push('onet', out_dir)
+        onet_output0 = graph.get_tensor_by_name('onet/conv6-2/conv6-2:0')
+        onet_output1 = graph.get_tensor_by_name('onet/conv6-3/conv6-3:0')
+        onet_output2 = graph.get_tensor_by_name('onet/prob1:0')
+
+        tf.identity(onet_output0, name='onet/output0')
+        tf.identity(onet_output1, name='onet/output1')
+        tf.identity(onet_output2, name='onet/output2')
+
+        logging.info("Freeze ONET graph")
+
+        output_graph_def = tf.graph_util.convert_variables_to_constants(
+            sess, graph.as_graph_def(), ['onet/output0', 'onet/output1', 'onet/output2']
+        )
+        # Finally we serialize and dump the output graph to the filesystem
+        with tf.gfile.GFile(os.path.join(dir, 'onet.pb'), "wb") as f:
+            f.write(output_graph_def.SerializeToString())
+
+        cmd = 'mo_tf.py --input_model {0}/onet.pb --output_dir {0} --data_type {1}'.format(dir, data_type)
+        logging.info('Compile: %s', cmd)
+        result = subprocess.check_output(cmd, shell=True).decode()
+        logging.info(result)
+        if do_push:
+            push('onet', out_dir)
 
 
 def convert_rnet(dir, data_type='FP32', prefix=None, do_push=False):
@@ -80,39 +79,38 @@ def convert_rnet(dir, data_type='FP32', prefix=None, do_push=False):
     if not os.path.exists(dir):
         os.mkdir(dir)
     tf.reset_default_graph()
-    with tf.Graph().as_default() as graph:
+    with tf.Graph().as_default() as graph, tf.Session() as sess:
         logging.info("Load RNET graph")
         data = tf.placeholder(tf.float32, (1, 24, 24, 3), 'input')
         with tf.variable_scope('rnet'):
-            onet = df.RNetMovidius({'data': data})
+            onet = df.RNetOpenVINO({'data': data})
+            onet.load(os.path.join('align', 'det2.npy'), sess)
         logging.info("Create RNET output")
-        rnet_output0 = graph.get_tensor_by_name('rnet/conv5-1/conv5-1:0')
-        rnet_output1 = graph.get_tensor_by_name('rnet/conv5-2/conv5-2:0')
-        rnet_output2 = tf.reshape(rnet_output0, [1, 1, 1, 2])
-        rnet_output3 = tf.reshape(rnet_output1, [1, 1, 1, 4])
-        rnet_output = tf.concat([rnet_output2, rnet_output3], -1, name='rnet/output0')
-        tf.nn.max_pool(rnet_output, ksize=[1, 1, 1, 1], strides=[1, 1, 1, 1], padding='SAME', name='rnet/output')
-        with tf.Session() as  sess:
-            sess.run(tf.global_variables_initializer())
-            sess.run(tf.local_variables_initializer())
-            logging.info("Load RNET weights")
-            with tf.variable_scope('rnet', reuse=tf.AUTO_REUSE):
-                onet.load(os.path.join('align', 'det2.npy'), sess)
-            logging.info("Freeze RNET graph")
 
-            output_graph_def = tf.graph_util.convert_variables_to_constants(
-                sess, graph.as_graph_def(), ['rnet/output']
-            )
-            # Finally we serialize and dump the output graph to the filesystem
-            with tf.gfile.GFile(os.path.join(dir, 'rnet.pb'), "wb") as f:
-                f.write(output_graph_def.SerializeToString())
+        rnet_output0 = graph.get_tensor_by_name('rnet/conv5-2/conv5-2:0')
+        rnet_output1 = graph.get_tensor_by_name('rnet/prob1:0')
 
-            cmd = 'mo_tf.py --input_model {0}/rnet.pb --output_dir {0} --data_type {1}'.format(dir, data_type)
-            logging.info('Compile: %s', cmd)
-            result = subprocess.check_output(cmd, shell=True).decode()
-            logging.info(result)
-            if do_push:
-                push('rnet', out_dir)
+        tf.identity(rnet_output0, name='rnet/output0')
+        tf.identity(rnet_output1, name='rnet/output1')
+
+        sess.run(tf.global_variables_initializer())
+        sess.run(tf.local_variables_initializer())
+
+        logging.info("Freeze RNET graph")
+
+        output_graph_def = tf.graph_util.convert_variables_to_constants(
+            sess, graph.as_graph_def(), ['rnet/output0', 'rnet/output1']
+        )
+        # Finally we serialize and dump the output graph to the filesystem
+        with tf.gfile.GFile(os.path.join(dir, 'rnet.pb'), "wb") as f:
+            f.write(output_graph_def.SerializeToString())
+
+        cmd = 'mo_tf.py --input_model {0}/rnet.pb --output_dir {0} --data_type {1}'.format(dir, data_type)
+        logging.info('Compile: %s', cmd)
+        result = subprocess.check_output(cmd, shell=True).decode()
+        logging.info(result)
+        if do_push:
+            push('rnet', out_dir)
 
 
 def convert_pnet(dir, h, w, data_type='FP32', prefix=None):
@@ -124,40 +122,37 @@ def convert_pnet(dir, h, w, data_type='FP32', prefix=None):
     if not os.path.exists(dir):
         os.mkdir(dir)
     tf.reset_default_graph()
-    with tf.Graph().as_default() as graph:
+    with tf.Graph().as_default() as graph, tf.Session() as sess:
         logging.info("Load PNET graph")
         data = tf.placeholder(tf.float32, (1, w, h, 3), 'input')
         with tf.variable_scope('pnet'):
-            pnet = df.PNetMovidius({'data': data})
+            pnet = df.PNetOpenVINO({'data': data})
+            pnet.load(os.path.join('align', 'det1.npy'), sess)
         logging.info("Create PNET output")
-        pnet_output0 = graph.get_tensor_by_name('pnet/conv4-1/BiasAdd:0')
-        pnet_output1 = graph.get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
-        pnet_output = tf.concat([pnet_output0, pnet_output1], -1, name='pnet/output0')
-        tf.nn.max_pool(pnet_output, ksize=[1, 1, 1, 1], strides=[1, 1, 1, 1], padding='SAME', name='pnet/output')
-        saver = tf.train.Saver(tf.global_variables())
-        with tf.Session() as  sess:
-            sess.run(tf.global_variables_initializer())
-            sess.run(tf.local_variables_initializer())
-            logging.info("Load PNET weights")
-            with tf.variable_scope('pnet', reuse=tf.AUTO_REUSE):
-                pnet.load(os.path.join('align', 'det1.npy'), sess)
+        pnet_output0 = graph.get_tensor_by_name('pnet/conv4-2/BiasAdd:0')
+        pnet_output1 = graph.get_tensor_by_name('pnet/prob1:0')
 
-            logging.info("Freeze PNET graph")
+        tf.identity(pnet_output0, name='pnet/output0')
+        tf.identity(pnet_output1, name='pnet/output1')
 
-            output_graph_def = tf.graph_util.convert_variables_to_constants(
-                sess, graph.as_graph_def(), ['pnet/output']
-            )
+        sess.run(tf.global_variables_initializer())
+        sess.run(tf.local_variables_initializer())
+        logging.info("Freeze PNET graph")
 
-            out_file = 'pnet_{}x{}.pb'.format(h, w)
+        output_graph_def = tf.graph_util.convert_variables_to_constants(
+            sess, graph.as_graph_def(), ['pnet/output0', 'pnet/output1']
+        )
 
-            # Finally we serialize and dump the output graph to the filesystem
-            with tf.gfile.GFile(os.path.join(dir, out_file), "wb") as f:
-                f.write(output_graph_def.SerializeToString())
+        out_file = 'pnet_{}x{}.pb'.format(h, w)
 
-            cmd = 'mo_tf.py --input_model {0}/{1} --output_dir {0} --data_type {2}'.format(dir, out_file, data_type)
-            logging.info('Compile: %s', cmd)
-            result = subprocess.check_output(cmd, shell=True).decode()
-            logging.info(result)
+        # Finally we serialize and dump the output graph to the filesystem
+        with tf.gfile.GFile(os.path.join(dir, out_file), "wb") as f:
+            f.write(output_graph_def.SerializeToString())
+
+        cmd = 'mo_tf.py --input_model {0}/{1} --output_dir {0} --data_type {2}'.format(dir, out_file, data_type)
+        logging.info('Compile: %s', cmd)
+        result = subprocess.check_output(cmd, shell=True).decode()
+        logging.info(result)
 
 
 def prepare_pnet(dir, data_type='FP32', do_push=False, prefix=None):
