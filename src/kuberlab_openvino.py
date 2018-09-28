@@ -238,8 +238,8 @@ def main():
         from imutils.video import FPS
         vs = VideoStream(
             usePiCamera=args.camera_device == "PI",
-            resolution=(640, 480),
-            framerate=24
+            # resolution=(640, 480),
+            # framerate=24
         ).start()
         time.sleep(1)
         fps = FPS().start()
@@ -258,8 +258,8 @@ def main():
 
         def _onet_proxy(img):
             img = img.transpose([2, 0, 1]).reshape([1, 3, 48, 48])
-            output = o_net.infer({onet_input_name: img})
-            return output[onet_output_name]
+            output = o_net.infer({onet_input_name: img})[onet_output_name]
+            return output
 
         pnets_proxy, rnet, onet = detect_face.create_movidius_mtcnn(
             sess, 'align', pnets_proxy, _rnet_proxy, _onet_proxy
@@ -269,22 +269,30 @@ def main():
                 # Capture frame-by-frame
                 if args.image is None:
                     frame = vs.read()
+                    if isinstance(frame, tuple):
+                        frame = frame[1]
                 else:
                     frame = cv2.imread(args.image).astype(np.float32)
 
-                if (frame.shape[1] != 640) or (frame.shape[0] != 480):
+                h = 400
+                w = int(round(frame.shape[1] / (frame.shape[0] / float(h))))
+                if (frame.shape[1] != w) or (frame.shape[0] != h):
                     frame = cv2.resize(
-                        frame, (640, 480), interpolation=cv2.INTER_AREA
+                        frame, (w, h), interpolation=cv2.INTER_AREA
                     )
 
                 # BGR -> RGB
                 rgb_frame = frame[:, :, ::-1]
+                # rgb_frame = frame
                 # print("Frame {}".format(frame.shape))
 
                 if (frame_count % frame_interval) == 0:
-                    bounding_boxes, _ = detect_face.movidius_detect_face(
-                        rgb_frame, pnets_proxy, rnet, onet, threshold
-                    )
+                    try:
+                        bounding_boxes, _ = detect_face.movidius_detect_face(
+                            rgb_frame, pnets_proxy, rnet, onet, threshold
+                        )
+                    except:
+                        continue
 
                     # Check our current fps
                     end_time = time.time()
