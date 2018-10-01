@@ -1,17 +1,22 @@
-import numpy as np
-import pickle
-import cv2
 import argparse
-import align.detect_face as detect_face
-import tensorflow as tf
-import numpy as np
+import logging
 import os
+import pickle
 import time
-import six
-from scipy import misc
 
+import cv2
+import numpy as np
 from openvino import inference_engine as ie
+from scipy import misc
+import six
+import tensorflow as tf
+
+import align.detect_face as detect_face
 import facenet
+
+
+logging.basicConfig(level=logging.INFO)
+LOG = logging.getLogger(__name__)
 
 
 def get_parser():
@@ -32,7 +37,7 @@ def get_parser():
     parser.add_argument(
         '--resolutions',
         type=str,
-        default="37x52,73x104",
+        default="52x74,145x206",
         help='PNET resolutions',
     )
     parser.add_argument(
@@ -138,10 +143,10 @@ def get_images(image, bounding_boxes):
 class PNetHandler(object):
     def __init__(self, plugin, h, w):
         net = ie.IENetwork.from_ir(*net_filenames(plugin, 'pnet_{}x{}'.format(h, w)))
-
         print(net.inputs)
         self.input_name = list(net.inputs.keys())[0]
-        self.output_name = net.outputs[0]
+        self.output_name0 = net.outputs[0]
+        self.output_name1 = net.outputs[1]
         self.exec_net = plugin.load(net)
         self.h = h
         self.w = w
@@ -152,12 +157,14 @@ class PNetHandler(object):
     def proxy(self):
         def _exec(img):
             # Channel first
-            img = img.transpose([0, 3, 1, 2])
+            img = img.transpose([0, 3, 2, 1])
             output = self.exec_net.infer({self.input_name: img})
-            output = output[self.output_name]
+            output1 = output[self.output_name0]
+            output2 = output[self.output_name1]
             # Channel last
-            output = output.transpose([0, 2, 3, 1])
-            return output
+            output1 = output1.transpose([0, 3, 2, 1])
+            output2 = output2.transpose([0, 3, 2, 1])
+            return output1, output2
 
         return _exec, self.h, self.w
 
@@ -200,14 +207,19 @@ def main():
     print('Load RNET')
     net = ie.IENetwork.from_ir(*net_filenames(plugin, 'rnet'))
     rnet_input_name = list(net.inputs.keys())[0]
-    rnet_output_name = net.outputs[0]
+    rnet_output_name0 = net.outputs[0]
+    rnet_output_name1 = net.outputs[1]
     r_net = plugin.load(net)
 
     print('Load ONET')
 
     net = ie.IENetwork.from_ir(*net_filenames(plugin, 'onet'))
     onet_input_name = list(net.inputs.keys())[0]
-    onet_output_name = net.outputs[0]
+    onet_batch_size = net.inputs[onet_input_name][0]
+    onet_output_name0 = net.outputs[0]
+    onet_output_name1 = net.outputs[1]
+    onet_output_name2 = net.outputs[2]
+    print('ONET_BATCH_SIZE = {}'.format(onet_batch_size))
     o_net = plugin.load(net)
 
     if use_classifier:
@@ -229,7 +241,7 @@ def main():
             (model, class_names) = pickle.load(**opts)
 
     minsize = 20  # minimum size of face
-    threshold = [0.6, 0.6, 0.7]  # three steps's threshold
+    threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
 
     # video_capture = cv2.VideoCapture(0)
@@ -254,15 +266,15 @@ def main():
 
         def _rnet_proxy(img):
             output = r_net.infer({rnet_input_name: img})
-            return output[rnet_output_name]
+            return output[rnet_output_name0], output[rnet_output_name1]
 
         def _onet_proxy(img):
-            img = img.transpose([2, 0, 1]).reshape([1, 3, 48, 48])
-            output = o_net.infer({onet_input_name: img})[onet_output_name]
-            return output
+            # img = img.reshape([1, 3, 48, 48])
+            output = o_net.infer({onet_input_name: img})
+            return output[onet_output_name0], output[onet_output_name1], output[onet_output_name2]
 
-        pnets_proxy, rnet, onet = detect_face.create_movidius_mtcnn(
-            sess, 'align', pnets_proxy, _rnet_proxy, _onet_proxy
+        pnet, rnet, onet = detect_face.create_openvino_mtcnn(
+            pnets_proxy, _rnet_proxy, _onet_proxy, onet_batch_size
         )
         try:
             while True:
@@ -274,8 +286,10 @@ def main():
                 else:
                     frame = cv2.imread(args.image).astype(np.float32)
 
-                h = 400
-                w = int(round(frame.shape[1] / (frame.shape[0] / float(h))))
+                # h = 400
+                # w = int(round(frame.shape[1] / (frame.shape[0] / float(h))))
+                h = 480
+                w = 640
                 if (frame.shape[1] != w) or (frame.shape[0] != h):
                     frame = cv2.resize(
                         frame, (w, h), interpolation=cv2.INTER_AREA
@@ -287,13 +301,12 @@ def main():
                 # print("Frame {}".format(frame.shape))
 
                 if (frame_count % frame_interval) == 0:
-                    try:
-                        bounding_boxes, _ = detect_face.movidius_detect_face(
-                            rgb_frame, pnets_proxy, rnet, onet, threshold
-                        )
-                    except:
-                        continue
-
+                    # t = time.time()
+                    bounding_boxes, _ = detect_face.detect_face_openvino(
+                        rgb_frame, pnet, rnet, onet, threshold
+                    )
+                    # d = (time.time() - t) * 1000
+                    # LOG.info('recognition: %.3fms' % d)
                     # Check our current fps
                     end_time = time.time()
                     if (end_time - start_time) > fps_display_interval:
@@ -301,50 +314,53 @@ def main():
                         start_time = time.time()
                         frame_count = 0
 
-                if use_classifier:
-                    imgs = get_images(rgb_frame, bounding_boxes)
-                    labels = []
-                    for img_idx, img in enumerate(imgs):
-                        img = img.astype(np.float32)
+                    if use_classifier:
+                        imgs = get_images(rgb_frame, bounding_boxes)
+                        labels = []
+                        # t = time.time()
+                        for img_idx, img in enumerate(imgs):
+                            img = img.astype(np.float32)
 
-                        # Infer
-                        img = img.transpose([2, 0, 1]).reshape([1, 3, 160, 160])
-                        output = face_net.infer({facenet_input: img})
-                        output = output[facenet_output]
-                        try:
-                            output = output.reshape(1, model.shape_fit_[1])
-                            predictions = model.predict_proba(output)
-                        except ValueError as e:
-                            # Can not reshape
-                            print(
-                                "ERROR: Output from graph doesn't consistent"
-                                " with classifier model: %s" % e
-                            )
-                            continue
+                            # Infer
+                            img = img.transpose([2, 0, 1]).reshape([1, 3, 160, 160])
+                            output = face_net.infer({facenet_input: img})
+                            output = output[facenet_output]
+                            try:
+                                output = output.reshape(1, model.shape_fit_[1])
+                                predictions = model.predict_proba(output)
+                            except ValueError as e:
+                                # Can not reshape
+                                print(
+                                    "ERROR: Output from graph doesn't consistent"
+                                    " with classifier model: %s" % e
+                                )
+                                continue
 
-                        best_class_indices = np.argmax(predictions, axis=1)
-                        best_class_probabilities = predictions[
-                            np.arange(len(best_class_indices)),
-                            best_class_indices
-                        ]
+                            best_class_indices = np.argmax(predictions, axis=1)
+                            best_class_probabilities = predictions[
+                                np.arange(len(best_class_indices)),
+                                best_class_indices
+                            ]
 
-                        for i in range(len(best_class_indices)):
-                            bb = bounding_boxes[img_idx].astype(int)
-                            text = '%.1f%% %s' % (
-                                best_class_probabilities[i] * 100,
-                                class_names[best_class_indices[i]]
-                            )
-                            labels.append({
-                                'label': text,
-                                'left': bb[0],
-                                'top': bb[1] - 5
-                            })
-                            # DEBUG
-                            print('%4d  %s: %.3f' % (
-                                i,
-                                class_names[best_class_indices[i]],
-                                best_class_probabilities[i])
-                            )
+                            for i in range(len(best_class_indices)):
+                                bb = bounding_boxes[img_idx].astype(int)
+                                text = '%.1f%% %s' % (
+                                    best_class_probabilities[i] * 100,
+                                    class_names[best_class_indices[i]]
+                                )
+                                labels.append({
+                                    'label': text,
+                                    'left': bb[0],
+                                    'top': bb[1] - 5
+                                })
+                                # DEBUG
+                                print('%4d  %s: %.3f' % (
+                                    i,
+                                    class_names[best_class_indices[i]],
+                                    best_class_probabilities[i])
+                                      )
+                        # d = (time.time() - t) * 1000
+                        # LOG.info('facenet: %.3fms' % d)
 
                 add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
 

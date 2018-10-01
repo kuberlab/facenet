@@ -35,7 +35,7 @@ import cv2
 import time
 import os
 
-
+import time
 def layer(op):
     """Decorator for composable network layers."""
 
@@ -244,7 +244,7 @@ class OpenVINONetwork(Network):
         # normalize = tf.reduce_sum(target_exp, axis, keepdims=True)
         # softmax = tf.div(target_exp, normalize, name)
         # return softmax
-        tf.identity(target, 'fake_prob')
+        # tf.identity(target, 'fake_prob')
         return tf.nn.softmax(target, axis=axis, name=name)
 
 
@@ -470,6 +470,7 @@ def create_movidius_mtcnn(sess, model_path, movidius_pnets, movidius_rnet, movid
 
     return pnets, _rnet_fun, _onet_fun
 
+
 def create_mult_movidius_mtcnn(sess, model_path, movidius_pnets, movidius_rnet, movidius_onet):
     if not model_path:
         model_path, _ = os.path.split(os.path.realpath(__file__))
@@ -497,12 +498,14 @@ def create_mult_movidius_mtcnn(sess, model_path, movidius_pnets, movidius_rnet, 
         fout = mpfun(img0)
         ho = (h - 9) >> 1
         wo = (w - 9) >> 1
+
         def _pnet_res():
             out = fout()
             out = out.reshape((1, wo, ho, 6))
             out1 = out[:, :, :, 0:2]
             out2 = out[:, :, :, 2:]
             return out2, pnet_fun_1(out1)
+
         return lambda: _pnet_res()
 
     for p in movidius_pnets:
@@ -549,15 +552,15 @@ def create_mtcnn(sess, model_path):
 
     with tf.variable_scope('pnet'):
         data = tf.placeholder(tf.float32, (None, None, None, 3), 'input')
-        pnet = PNet({'data': data})
+        pnet = PNetOpenVINO({'data': data})
         pnet.load(os.path.join(model_path, 'det1.npy'), sess)
     with tf.variable_scope('rnet'):
         data = tf.placeholder(tf.float32, (None, 24, 24, 3), 'input')
-        rnet = RNet({'data': data})
+        rnet = RNetOpenVINO({'data': data})
         rnet.load(os.path.join(model_path, 'det2.npy'), sess)
     with tf.variable_scope('onet'):
         data = tf.placeholder(tf.float32, (None, 48, 48, 3), 'input')
-        onet = ONet({'data': data})
+        onet = ONetOpenVINO({'data': data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess)
 
     pnet_fun = lambda img: sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0': img})
@@ -565,6 +568,7 @@ def create_mtcnn(sess, model_path):
     onet_fun = lambda img: sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'),
                                     feed_dict={'onet/input:0': img})
     return pnet_fun, rnet_fun, onet_fun
+
 
 def parallel_movidius_detect_face(img, pnets, rnet, onet, threshold):
     h = img.shape[0]
@@ -682,6 +686,7 @@ def parallel_movidius_detect_face(img, pnets, rnet, onet, threshold):
             points = points[:, pick]
 
     return total_boxes, points
+
 
 def movidius_detect_face(img, pnets, rnet, onet, threshold):
     h = img.shape[0]
@@ -1038,7 +1043,7 @@ def detect_face_for_align(img, minsize, pnet, rnet, onet, threshold, factor):
     return total_boxes, points
 
 
-def detect_face(img, minsize, pnet, rnet, onet, threshold, factor,resolutions=None):
+def detect_face(img, minsize, pnet, rnet, onet, threshold, factor, resolutions=None):
     """Detects faces in an image, and returns bounding boxes and points for them.
     img: input image
     minsize: minimum faces' size
@@ -1063,7 +1068,8 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor,resolutions=No
 
     # first stage
     if resolutions is None:
-        resolutions = [(14, 19), (19, 27), (26, 37), (37, 52), (73, 104), (103, 146), (145, 206), (205, 290),(288, 408)]
+        resolutions = [(14, 19), (19, 27), (26, 37), (37, 52), (73, 104), (103, 146), (145, 206), (205, 290),
+                       (288, 408)]
     for r1 in resolutions:
         if r1[0] < 0:
             continue
@@ -1142,32 +1148,40 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor,resolutions=No
     return total_boxes, points
 
 
-def create_openvino_mtcnn(pnets, rnet, onet):
+def create_openvino_mtcnn(pnets, rnet, onet, onet_batch_size):
     def _rnet_fun(img):
-        outs1 = []
-        outs2 = []
+        outs1 = np.zeros([len(img), 4])
+        outs2 = np.zeros([len(img), 2])
 
-        for i in img:
+        for i, batch in enumerate(img):
             # i = i.astype(np.float32)
-            out1, out2 = rnet(i)
-            outs1.append(out1)
-            outs2.append(out2)
-        return np.stack(outs1), np.stack(outs2)
+            out1, out2 = rnet(batch)
+            outs1[i] = out1
+            outs2[i] = out2
+
+        return outs1, outs2
+
+    batch_template = np.zeros([onet_batch_size, 3, 48, 48])
 
     def _onet_fun(img):
-        outs1 = []
-        outs2 = []
-        outs3 = []
-        for i in img:
-            # i = i.astype(np.float32)
-            out1, out2, out3 = onet(i)
-            outs1.append(out1)
-            outs2.append(out2)
-            outs3.append(out3)
-        return np.stack(outs1), np.stack(outs2), np.stack(outs3)
+        outs1 = np.zeros([len(img), 4])
+        outs2 = np.zeros([len(img), 10])
+        outs3 = np.zeros([len(img), 2])
+
+        i = 0
+        while i < len(img):
+            batch = img[i:i+onet_batch_size]
+            batch_template[:len(batch)] = batch
+
+            out1, out2, out3 = onet(batch_template)
+            outs1[i:i+onet_batch_size] = out1[:len(batch)]
+            outs2[i:i+onet_batch_size] = out2[:len(batch)]
+            outs3[i:i+onet_batch_size] = out3[:len(batch)]
+            i += onet_batch_size
+
+        return outs1, outs2, outs3
 
     return pnets, _rnet_fun, _onet_fun
-
 
 
 def detect_face_openvino(img, pnets, rnet, onet, threshold):
@@ -1183,30 +1197,25 @@ def detect_face_openvino(img, pnets, rnet, onet, threshold):
     points = np.empty(0)
     h = img.shape[0]
     w = img.shape[1]
-    # minl = np.amin([h, w])
-    # m = 12.0 / minsize
-    # minl = minl * m
-    # create scale pyramid
-    scales = []
-    # while minl >= 12:
-        # scales += [m * np.power(factor, factor_count)]
-        # minl = minl * factor
-        # factor_count += 1
 
     # first stage
     for pnet in pnets:
         hs = pnet[1]
         ws = pnet[2]
         pnet_fun = pnet[0]
-        scale = float(ws) / img.shape[1]
+        scale = float(ws) / float(img.shape[1])
         im_data = imresample(img, (hs, ws))
         im_data = (im_data - 127.5) * 0.0078125
         img_x = np.expand_dims(im_data, 0)
-        img_y = np.transpose(img_x, (0, 2, 1, 3))
-        out = pnet_fun(img_y)
-        out0 = np.transpose(out[0], (0, 2, 1, 3))
-        out1 = np.transpose(out[1], (0, 2, 1, 3))
 
+        # t = time.time()
+
+        # img_y = np.transpose(img_x, (0, 2, 1, 3))
+        out0, out1 = pnet_fun(img_x)
+        # out0 = np.transpose(out[0], (0, 2, 1, 3))
+        # out1 = np.transpose(out[1], (0, 2, 1, 3))
+        # d = (time.time() - t) * 1000
+        # print('pnet %.3fms' % d)
         boxes, _ = generateBoundingBox(out1[0, :, :, 1].copy(), out0[0, :, :, :].copy(), scale, threshold[0])
 
         # inter-scale nms
@@ -1231,54 +1240,29 @@ def detect_face_openvino(img, pnets, rnet, onet, threshold):
         dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph = pad(total_boxes.copy(), w, h)
 
     numbox = total_boxes.shape[0]
-    # if numbox > 0:
-    #     # second stage
-    #     tempimg = np.zeros((24, 24, 3, numbox))
-    #     for k in range(0, numbox):
-    #         tmp = np.zeros((int(tmph[k]), int(tmpw[k]), 3))
-    #         tmp[dy[k] - 1:edy[k], dx[k] - 1:edx[k], :] = img[y[k] - 1:ey[k], x[k] - 1:ex[k], :]
-    #         if tmp.shape[0] > 0 and tmp.shape[1] > 0 or tmp.shape[0] == 0 and tmp.shape[1] == 0:
-    #             tempimg[:, :, :, k] = imresample(tmp, (24, 24))
-    #         else:
-    #             return np.empty()
-    #     tempimg = (tempimg - 127.5) * 0.0078125
-    #     tempimg1 = np.transpose(tempimg, (3, 1, 0, 2))
-    #     out = rnet(tempimg1)
-    #     out0 = np.transpose(out[0])
-    #     out1 = np.transpose(out[1])
-    #     score = out1[1, :]
-    #     ipass = np.where(score > threshold[1])
-    #     total_boxes = np.hstack([total_boxes[ipass[0], 0:4].copy(), np.expand_dims(score[ipass].copy(), 1)])
-    #     mv = out0[:, ipass[0]]
-    #     if total_boxes.shape[0] > 0:
-    #         pick = nms(total_boxes, 0.7, 'Union')
-    #         total_boxes = total_boxes[pick, :]
-    #         total_boxes = bbreg(total_boxes.copy(), np.transpose(mv[:, pick]))
-    #         total_boxes = rerec(total_boxes.copy())
-    #
-    # numbox = total_boxes.shape[0]
+
     if numbox > 0:
         # third stage
         total_boxes = np.fix(total_boxes).astype(np.int32)
         dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph = pad(total_boxes.copy(), w, h)
         tempimg = np.zeros((48, 48, 3, numbox))
-        __import__('ipdb').set_trace()
         for k in range(0, numbox):
             tmp = np.zeros((int(tmph[k]), int(tmpw[k]), 3))
-            try:
-                tmp[dy[k] - 1:edy[k], dx[k] - 1:edx[k], :] = img[y[k] - 1:ey[k], x[k] - 1:ex[k], :]
-                if tmp.shape[0] > 0 and tmp.shape[1] > 0 or tmp.shape[0] == 0 and tmp.shape[1] == 0:
-                    tempimg[:, :, :, k] = imresample(tmp, (48, 48))
-                else:
-                    return np.empty()
-            except:
-                continue
+            tmp[dy[k] - 1:edy[k], dx[k] - 1:edx[k], :] = img[y[k] - 1:ey[k], x[k] - 1:ex[k], :]
+            if tmp.shape[0] > 0 and tmp.shape[1] > 0 or tmp.shape[0] == 0 and tmp.shape[1] == 0:
+                tempimg[:, :, :, k] = imresample(tmp, (48, 48))
+            else:
+                return np.empty()
         tempimg = (tempimg - 127.5) * 0.0078125
-        tempimg1 = np.transpose(tempimg, (3, 1, 0, 2))
+        # t = time.time()
+        # __import__('ipdb').set_trace()
+        tempimg1 = np.transpose(tempimg, (3, 2, 1, 0))
         out = onet(tempimg1)
         out0 = np.transpose(out[0])
         out1 = np.transpose(out[1])
         out2 = np.transpose(out[2])
+        # d = (time.time() - t) * 1000
+        # print('onet %.3fms' % d)
         score = out2[1, :]
         points = out1
         ipass = np.where(score > threshold[2])

@@ -29,6 +29,9 @@ def push(name, dirame):
 
 
 def conver_onet(dir, data_type='FP32', prefix=None, do_push=False):
+    # Set batch size for conversion
+    batch_size = 8
+
     out_dir = os.path.join(dir, "openvino")
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
@@ -63,7 +66,9 @@ def conver_onet(dir, data_type='FP32', prefix=None, do_push=False):
         with tf.gfile.GFile(os.path.join(dir, 'onet.pb'), "wb") as f:
             f.write(output_graph_def.SerializeToString())
 
-        cmd = 'mo_tf.py --input_model {0}/onet.pb --output_dir {0} --data_type {1}'.format(dir, data_type)
+        cmd = 'mo_tf.py --input_model {0}/onet.pb --output_dir {0} --data_type {1} --batch {2}'.format(
+            dir, data_type, batch_size
+        )
         logging.info('Compile: %s', cmd)
         result = subprocess.check_output(cmd, shell=True).decode()
         logging.info(result)
