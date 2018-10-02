@@ -192,13 +192,16 @@ def main(args):
 
         if args.upload_model and accuracy >= args.upload_threshold:
             timestamp = datetime.datetime.now().strftime('%s')
+            model_name = 'facenet-classifier'
+            version = '1.0.0-%s-%s' % (args.driver, timestamp)
 
+            print('Uploading model as %s:%s' % (model_name, version))
             upload_model(
                 use_mlboard,
                 mlboard,
                 classifier_filename_exp,
-                'facenet-classifier',
-                '1.0.0-%s-%s' % (args.driver, timestamp)
+                model_name,
+                version
             )
 
 
