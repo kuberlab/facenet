@@ -149,27 +149,23 @@
 		<IR id="36" name="rnet/prelu4/Add" out_port_id="2"/>
 	</map>
 	<map>
-		<framework name="rnet/conv5-1/conv5-1" out_port_id="0"/>
-		<IR id="37" name="rnet/conv5-1/conv5-1/MatMul" out_port_id="3"/>
-	</map>
-	<map>
-		<framework name="Reshape" out_port_id="0"/>
-		<IR id="38" name="Reshape" out_port_id="1"/>
+		<framework name="rnet/output0" out_port_id="0"/>
+		<IR id="37" name="rnet/conv5-2/conv5-2/MatMul" out_port_id="3"/>
 	</map>
 	<map>
 		<framework name="rnet/conv5-2/conv5-2" out_port_id="0"/>
-		<IR id="39" name="rnet/conv5-2/conv5-2/MatMul" out_port_id="3"/>
+		<IR id="37" name="rnet/conv5-2/conv5-2/MatMul" out_port_id="3"/>
 	</map>
 	<map>
-		<framework name="Reshape_1" out_port_id="0"/>
-		<IR id="40" name="Reshape_1" out_port_id="1"/>
+		<framework name="rnet/conv5-1/conv5-1" out_port_id="0"/>
+		<IR id="38" name="rnet/conv5-1/conv5-1/MatMul" out_port_id="3"/>
 	</map>
 	<map>
-		<framework name="rnet/output0" out_port_id="0"/>
-		<IR id="41" name="rnet/output0" out_port_id="2"/>
+		<framework name="rnet/output1" out_port_id="0"/>
+		<IR id="39" name="rnet/prob1" out_port_id="1"/>
 	</map>
 	<map>
-		<framework name="rnet/output" out_port_id="0"/>
-		<IR id="42" name="rnet/output" out_port_id="1"/>
+		<framework name="rnet/prob1" out_port_id="0"/>
+		<IR id="39" name="rnet/prob1" out_port_id="1"/>
 	</map>
 </mapping>
