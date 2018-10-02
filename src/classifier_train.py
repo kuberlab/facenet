@@ -198,7 +198,7 @@ def main(args):
                 mlboard,
                 classifier_filename_exp,
                 'facenet-classifier',
-                '1.0.0-%s' % timestamp
+                '1.0.0-%s-%s' % (args.driver, timestamp)
             )
 
 
