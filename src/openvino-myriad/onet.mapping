@@ -189,35 +189,31 @@
 		<IR id="46" name="onet/prelu5/Add" out_port_id="2"/>
 	</map>
 	<map>
-		<framework name="onet/conv6-1/conv6-1" out_port_id="0"/>
-		<IR id="47" name="onet/conv6-1/conv6-1/MatMul" out_port_id="3"/>
-	</map>
-	<map>
-		<framework name="Reshape" out_port_id="0"/>
-		<IR id="48" name="Reshape" out_port_id="1"/>
+		<framework name="onet/output0" out_port_id="0"/>
+		<IR id="47" name="onet/conv6-2/conv6-2/MatMul" out_port_id="3"/>
 	</map>
 	<map>
 		<framework name="onet/conv6-2/conv6-2" out_port_id="0"/>
-		<IR id="49" name="onet/conv6-2/conv6-2/MatMul" out_port_id="3"/>
+		<IR id="47" name="onet/conv6-2/conv6-2/MatMul" out_port_id="3"/>
 	</map>
 	<map>
-		<framework name="Reshape_1" out_port_id="0"/>
-		<IR id="50" name="Reshape_1" out_port_id="1"/>
+		<framework name="onet/output1" out_port_id="0"/>
+		<IR id="48" name="onet/conv6-3/conv6-3/MatMul" out_port_id="3"/>
 	</map>
 	<map>
 		<framework name="onet/conv6-3/conv6-3" out_port_id="0"/>
-		<IR id="51" name="onet/conv6-3/conv6-3/MatMul" out_port_id="3"/>
+		<IR id="48" name="onet/conv6-3/conv6-3/MatMul" out_port_id="3"/>
 	</map>
 	<map>
-		<framework name="Reshape_2" out_port_id="0"/>
-		<IR id="52" name="Reshape_2" out_port_id="1"/>
+		<framework name="onet/conv6-1/conv6-1" out_port_id="0"/>
+		<IR id="49" name="onet/conv6-1/conv6-1/MatMul" out_port_id="3"/>
 	</map>
 	<map>
-		<framework name="onet/output0" out_port_id="0"/>
-		<IR id="53" name="onet/output0" out_port_id="3"/>
+		<framework name="onet/output2" out_port_id="0"/>
+		<IR id="50" name="onet/prob1" out_port_id="1"/>
 	</map>
 	<map>
-		<framework name="onet/output" out_port_id="0"/>
-		<IR id="54" name="onet/output" out_port_id="1"/>
+		<framework name="onet/prob1" out_port_id="0"/>
+		<IR id="50" name="onet/prob1" out_port_id="1"/>
 	</map>
 </mapping>

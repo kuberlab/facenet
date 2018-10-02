@@ -117,19 +117,31 @@
 		<IR id="28" name="pnet/PReLU3/Add" out_port_id="2"/>
 	</map>
 	<map>
-		<framework name="pnet/conv4-1/BiasAdd" out_port_id="0"/>
-		<IR id="29" name="pnet/conv4-1/Conv2D" out_port_id="3"/>
+		<framework name="pnet/output0" out_port_id="0"/>
+		<IR id="29" name="pnet/conv4-2/Conv2D" out_port_id="3"/>
 	</map>
 	<map>
 		<framework name="pnet/conv4-2/BiasAdd" out_port_id="0"/>
-		<IR id="30" name="pnet/conv4-2/Conv2D" out_port_id="3"/>
+		<IR id="29" name="pnet/conv4-2/Conv2D" out_port_id="3"/>
 	</map>
 	<map>
-		<framework name="pnet/output0" out_port_id="0"/>
-		<IR id="31" name="pnet/output0" out_port_id="2"/>
+		<framework name="pnet/conv4-1/BiasAdd" out_port_id="0"/>
+		<IR id="30" name="pnet/conv4-1/Conv2D" out_port_id="3"/>
 	</map>
 	<map>
-		<framework name="pnet/output" out_port_id="0"/>
-		<IR id="32" name="pnet/output" out_port_id="1"/>
+		<framework name="pnet/Reshape" out_port_id="0"/>
+		<IR id="31" name="pnet/Reshape" out_port_id="1"/>
+	</map>
+	<map>
+		<framework name="pnet/Softmax" out_port_id="0"/>
+		<IR id="32" name="pnet/Softmax" out_port_id="1"/>
+	</map>
+	<map>
+		<framework name="pnet/output1" out_port_id="0"/>
+		<IR id="33" name="pnet/prob1" out_port_id="1"/>
+	</map>
+	<map>
+		<framework name="pnet/prob1" out_port_id="0"/>
+		<IR id="33" name="pnet/prob1" out_port_id="1"/>
 	</map>
 </mapping>
