@@ -174,7 +174,7 @@ def postprocess(outputs, ctx, **kwargs):
 
     ko.add_overlays(ctx.frame, ctx.bounding_boxes, 0, labels=labels)
     image_bytes = io.BytesIO()
-    imageio.imsave(image_bytes, ctx.frame, '.jpg')
+    imageio.imsave(image_bytes, ctx.frame, '.png')
     return {
         'output': image_bytes.getvalue(),
         'boxes': ctx.bounding_boxes,
