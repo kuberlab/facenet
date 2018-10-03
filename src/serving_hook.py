@@ -2,6 +2,8 @@ import logging
 import pickle
 
 import cv2
+import imageio
+import io
 import numpy as np
 from openvino import inference_engine as ie
 import six
@@ -111,6 +113,9 @@ def preprocess(inputs, ctx, **kwargs):
     if image is None:
         raise RuntimeError('Missing "input" key in inputs. Provide an image in "input" key')
 
+    if isinstance(image[0], (six.string_types, bytes)):
+        image = imageio.imread(image[0])
+
     if image.shape[0] > height or image.shape[1] > width:
         frame = cv2.resize(
             image, (width, height), interpolation=cv2.INTER_AREA
@@ -123,6 +128,7 @@ def preprocess(inputs, ctx, **kwargs):
     bounding_boxes, _ = detect_face.detect_face_openvino(
         frame, pnets, rnet, onet, PARAMS['threshold']
     )
+    ctx.scaled = scaled
     ctx.bounding_boxes = bounding_boxes
     ctx.frame = frame
 
@@ -167,9 +173,10 @@ def postprocess(outputs, ctx, **kwargs):
             )
 
     ko.add_overlays(ctx.frame, ctx.bounding_boxes, 0, labels=labels)
-
+    image_bytes = io.BytesIO()
+    imageio.imsave(image_bytes, ctx.frame, '.jpg')
     return {
-        'output': ctx.frame,
+        'output': image_bytes.getvalue(),
         'boxes': ctx.bounding_boxes,
         # 'labels': np.array(labels)
     }
