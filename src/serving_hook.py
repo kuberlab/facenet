@@ -20,7 +20,8 @@ PARAMS = {
     'resolutions': '26x37,37x52,52x74,145x206',
     'classifier': '',
     'threshold': [0.6, 0.7, 0.7],
-    'tf_nets': False,
+    'use_tf': False,
+    'tf_path': '/tf-data'
 }
 width = 640
 height = 480
@@ -40,6 +41,7 @@ def init_hook(**kwargs):
         PARAMS['threshold'] = [
             float(x) for x in PARAMS['threshold'].split(',')
         ]
+    PARAMS['use_tf'] = bool(PARAMS['use_tf'])
 
 
 def net_filenames(dir, net_name):
@@ -69,31 +71,38 @@ def load_nets(**kwargs):
     global rnet
     global onet
 
-    plugin = kwargs.get('plugin')
-    model_dir = PARAMS.get('align_model_dir')
+    use_tf = PARAMS['use_tf']
+    if use_tf:
+        model_path = PARAMS['tf_path']
+        import tensorflow as tf
+        sess = tf.Session()
+        pnets, rnet, onet = detect_face.create_mtcnn(sess, model_path)
+    else:
+        plugin = kwargs.get('plugin')
+        model_dir = PARAMS.get('align_model_dir')
 
-    LOG.info('Load PNET')
+        LOG.info('Load PNET')
 
-    pnets_proxy = []
-    for r in ko.parse_resolutions(PARAMS['resolutions']):
-        p = ko.PNetHandler(plugin, r[0], r[1])
-        pnets_proxy.append(p.proxy())
+        pnets_proxy = []
+        for r in ko.parse_resolutions(PARAMS['resolutions']):
+            p = ko.PNetHandler(plugin, r[0], r[1])
+            pnets_proxy.append(p.proxy())
 
-    LOG.info('Load RNET')
-    net = ie.IENetwork.from_ir(*net_filenames(model_dir, 'rnet'))
-    rnet_proxy = OpenVINONet(plugin, net)
+        LOG.info('Load RNET')
+        net = ie.IENetwork.from_ir(*net_filenames(model_dir, 'rnet'))
+        rnet_proxy = OpenVINONet(plugin, net)
 
-    LOG.info('Load ONET')
+        LOG.info('Load ONET')
 
-    net = ie.IENetwork.from_ir(*net_filenames(model_dir, 'onet'))
-    onet_proxy = OpenVINONet(plugin, net)
-    onet_input_name = list(net.inputs.keys())[0]
-    onet_batch_size = net.inputs[onet_input_name][0]
-    LOG.info('ONET_BATCH_SIZE = {}'.format(onet_batch_size))
+        net = ie.IENetwork.from_ir(*net_filenames(model_dir, 'onet'))
+        onet_proxy = OpenVINONet(plugin, net)
+        onet_input_name = list(net.inputs.keys())[0]
+        onet_batch_size = net.inputs[onet_input_name][0]
+        LOG.info('ONET_BATCH_SIZE = {}'.format(onet_batch_size))
 
-    pnets, rnet, onet = detect_face.create_openvino_mtcnn(
-        pnets_proxy, rnet_proxy, onet_proxy, onet_batch_size
-    )
+        pnets, rnet, onet = detect_face.create_openvino_mtcnn(
+            pnets_proxy, rnet_proxy, onet_proxy, onet_batch_size
+        )
 
     LOG.info('Load classifier')
     with open(PARAMS['classifier'], 'rb') as f:
@@ -131,9 +140,15 @@ def preprocess(inputs, ctx, **kwargs):
         frame = image
         scaled = False
 
-    bounding_boxes, _ = detect_face.detect_face_openvino(
-        frame, pnets, rnet, onet, PARAMS['threshold']
-    )
+    use_tf = PARAMS['use_tf']
+    if use_tf:
+        bounding_boxes, _ = detect_face.detect_face(
+            frame, 20, pnets, rnet, onet, PARAMS['threshold'], 0.709
+        )
+    else:
+        bounding_boxes, _ = detect_face.detect_face_openvino(
+            frame, pnets, rnet, onet, PARAMS['threshold']
+        )
     ctx.scaled = scaled
     ctx.bounding_boxes = bounding_boxes
     ctx.frame = frame
