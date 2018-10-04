@@ -19,7 +19,8 @@ PARAMS = {
     'align_model_dir': 'openvino-cpu',
     'resolutions': '26x37,37x52,52x74,145x206',
     'classifier': '',
-    'threshold': [0.6, 0.7, 0.7]
+    'threshold': [0.6, 0.7, 0.7],
+    'tf_nets': False,
 }
 width = 640
 height = 480
@@ -157,6 +158,9 @@ def postprocess(outputs, ctx, **kwargs):
     labels = []
 
     for img_idx, item_output in enumerate(facenet_output):
+        if ctx.skip:
+            break
+
         output = item_output.reshape(1, model.shape_fit_[1])
         predictions = model.predict_proba(output)
 
