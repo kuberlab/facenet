@@ -138,7 +138,14 @@ def preprocess(inputs, ctx, **kwargs):
     ctx.frame = frame
 
     imgs = ko.get_images(frame, bounding_boxes)
-    imgs = np.stack(imgs).transpose([0, 3, 1, 2])
+
+    if len(imgs) > 0:
+        imgs = np.stack(imgs).transpose([0, 3, 1, 2])
+        ctx.skip = False
+    else:
+        imgs = np.random.randn(1, 3, 160, 160).astype(np.float32)
+        ctx.skip = True
+
     model_input = list(kwargs['model_inputs'].keys())[0]
     return {model_input: imgs}
 
@@ -177,7 +184,9 @@ def postprocess(outputs, ctx, **kwargs):
                 best_class_probabilities[i])
             )
 
-    ko.add_overlays(ctx.frame, ctx.bounding_boxes, 0, labels=labels)
+    if not ctx.skip:
+        ko.add_overlays(ctx.frame, ctx.bounding_boxes, 0, labels=labels)
+
     image_bytes = io.BytesIO()
     imageio.imsave(image_bytes, ctx.frame, '.png')
     return {
