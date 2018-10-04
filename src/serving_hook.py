@@ -6,6 +6,7 @@ import imageio
 import io
 import numpy as np
 from openvino import inference_engine as ie
+from PIL import Image
 import six
 
 import kuberlab_openvino as ko
@@ -115,6 +116,9 @@ def preprocess(inputs, ctx, **kwargs):
 
     if isinstance(image[0], (six.string_types, bytes)):
         image = imageio.imread(image[0])
+
+        rgba_image = Image.fromarray(image)
+        image = rgba_image.convert('RGB')
 
     if image.shape[0] > height or image.shape[1] > width:
         frame = cv2.resize(
