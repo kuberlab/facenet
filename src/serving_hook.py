@@ -119,6 +119,7 @@ def preprocess(inputs, ctx, **kwargs):
 
         rgba_image = Image.fromarray(image)
         image = rgba_image.convert('RGB')
+        image = np.array(image)
 
     if image.shape[0] > height or image.shape[1] > width:
         frame = cv2.resize(
