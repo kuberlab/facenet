@@ -4,7 +4,7 @@
 		<layer id="0" name="input" precision="FP32" type="Input">
 			<output>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>3</dim>
 					<dim>48</dim>
 					<dim>48</dim>
@@ -15,7 +15,7 @@
 			<data auto_pad="valid" dilation-x="1" dilation-y="1" group="1" kernel-x="3" kernel-y="3" output="32" pad-b="0" pad-r="0" pad-x="0" pad-y="0" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>3</dim>
 					<dim>48</dim>
 					<dim>48</dim>
@@ -23,22 +23,22 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1408" size="3456"/>
-				<biases offset="4864" size="128"/>
+				<weights offset="1664" size="3456"/>
+				<biases offset="5120" size="128"/>
 			</blobs>
 		</layer>
 		<layer id="2" name="onet/prelu1/MaxPool_1" precision="FP32" type="Pooling">
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -46,7 +46,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -55,8 +55,8 @@
 		</layer>
 		<layer id="3" name="onet/prelu1/Mul" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="0">
-					<dim>8</dim>
+				<port id="1">
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -64,21 +64,21 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="4992" size="128"/>
-				<biases offset="5120" size="128"/>
+				<weights offset="1536" size="128"/>
+				<biases offset="5248" size="128"/>
 			</blobs>
 		</layer>
 		<layer id="4" name="onet/prelu1/Relu_1" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -86,7 +86,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -97,7 +97,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -105,7 +105,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -114,8 +114,8 @@
 		</layer>
 		<layer id="6" name="onet/prelu1/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="1">
-					<dim>8</dim>
+				<port id="0">
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -123,22 +123,22 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1280" size="128"/>
-				<biases offset="5248" size="128"/>
+				<weights offset="5376" size="128"/>
+				<biases offset="5504" size="128"/>
 			</blobs>
 		</layer>
 		<layer id="7" name="onet/prelu1/MaxPool" precision="FP32" type="Pooling">
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -146,7 +146,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -156,7 +156,7 @@
 		<layer id="8" name="onet/prelu1/Relu" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -164,7 +164,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -175,13 +175,13 @@
 			<data operation="sum"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
 				</port>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -189,7 +189,7 @@
 			</input>
 			<output>
 				<port id="2">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -200,7 +200,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="3" kernel-y="3" pad-b="1" pad-r="1" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,2,2" stride-x="2" stride-y="2"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>46</dim>
 					<dim>46</dim>
@@ -208,7 +208,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>23</dim>
 					<dim>23</dim>
@@ -219,7 +219,7 @@
 			<data auto_pad="valid" dilation-x="1" dilation-y="1" group="1" kernel-x="3" kernel-y="3" output="64" pad-b="0" pad-r="0" pad-x="0" pad-y="0" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>32</dim>
 					<dim>23</dim>
 					<dim>23</dim>
@@ -227,22 +227,22 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="5376" size="73728"/>
-				<biases offset="79104" size="256"/>
+				<weights offset="5632" size="73728"/>
+				<biases offset="79360" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="12" name="onet/prelu2/MaxPool_1" precision="FP32" type="Pooling">
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -250,7 +250,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -259,8 +259,8 @@
 		</layer>
 		<layer id="13" name="onet/prelu2/Mul" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="0">
-					<dim>8</dim>
+				<port id="1">
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -268,21 +268,21 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="79360" size="256"/>
+				<weights offset="1280" size="256"/>
 				<biases offset="79616" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="14" name="onet/prelu2/Relu_1" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -290,7 +290,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -301,7 +301,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -309,7 +309,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -318,8 +318,8 @@
 		</layer>
 		<layer id="16" name="onet/prelu2/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="1">
-					<dim>8</dim>
+				<port id="0">
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -327,22 +327,22 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1024" size="256"/>
-				<biases offset="79872" size="256"/>
+				<weights offset="79872" size="256"/>
+				<biases offset="80128" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="17" name="onet/prelu2/MaxPool" precision="FP32" type="Pooling">
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -350,7 +350,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -360,7 +360,7 @@
 		<layer id="18" name="onet/prelu2/Relu" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -368,7 +368,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -379,13 +379,13 @@
 			<data operation="sum"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
 				</port>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -393,7 +393,7 @@
 			</input>
 			<output>
 				<port id="2">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -404,7 +404,7 @@
 			<data auto_pad="valid" exclude-pad="true" kernel-x="3" kernel-y="3" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,2,2" stride-x="2" stride-y="2"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>21</dim>
 					<dim>21</dim>
@@ -412,7 +412,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>10</dim>
 					<dim>10</dim>
@@ -423,7 +423,7 @@
 			<data auto_pad="valid" dilation-x="1" dilation-y="1" group="1" kernel-x="3" kernel-y="3" output="64" pad-b="0" pad-r="0" pad-x="0" pad-y="0" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>10</dim>
 					<dim>10</dim>
@@ -431,22 +431,22 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="80128" size="147456"/>
-				<biases offset="227584" size="256"/>
+				<weights offset="80384" size="147456"/>
+				<biases offset="227840" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="22" name="onet/prelu3/MaxPool_1" precision="FP32" type="Pooling">
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -454,7 +454,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -463,8 +463,8 @@
 		</layer>
 		<layer id="23" name="onet/prelu3/Mul" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="0">
-					<dim>8</dim>
+				<port id="1">
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -472,21 +472,21 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="227840" size="256"/>
+				<weights offset="1024" size="256"/>
 				<biases offset="228096" size="256"/>
 			</blobs>
 		</layer>
 		<layer id="24" name="onet/prelu3/Relu_1" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -494,7 +494,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -505,7 +505,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -513,7 +513,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -523,7 +523,7 @@
 		<layer id="26" name="onet/prelu3/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -531,7 +531,7 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -546,7 +546,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -554,7 +554,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -564,7 +564,7 @@
 		<layer id="28" name="onet/prelu3/Relu" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -572,7 +572,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -583,13 +583,13 @@
 			<data operation="sum"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
 				</port>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -597,7 +597,7 @@
 			</input>
 			<output>
 				<port id="2">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -608,7 +608,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="2" kernel-y="2" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,2,2" stride-x="2" stride-y="2"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>8</dim>
 					<dim>8</dim>
@@ -616,7 +616,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>4</dim>
 					<dim>4</dim>
@@ -627,7 +627,7 @@
 			<data auto_pad="valid" dilation-x="1" dilation-y="1" group="1" kernel-x="2" kernel-y="2" output="128" pad-b="0" pad-r="0" pad-x="0" pad-y="0" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>64</dim>
 					<dim>4</dim>
 					<dim>4</dim>
@@ -635,7 +635,7 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -650,7 +650,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -658,7 +658,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -668,7 +668,7 @@
 		<layer id="33" name="onet/prelu4/Mul" precision="FP32" type="ScaleShift">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -676,7 +676,7 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -690,7 +690,7 @@
 		<layer id="34" name="onet/prelu4/Relu_1" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -698,7 +698,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -709,7 +709,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -717,7 +717,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -727,7 +727,7 @@
 		<layer id="36" name="onet/prelu4/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -735,7 +735,7 @@
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -750,7 +750,7 @@
 			<data auto_pad="same_upper" exclude-pad="true" kernel-x="1" kernel-y="1" pad-b="0" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,1,1" stride-x="1" stride-y="1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -758,7 +758,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -768,7 +768,7 @@
 		<layer id="38" name="onet/prelu4/Relu" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -776,7 +776,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -787,13 +787,13 @@
 			<data operation="sum"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
 				</port>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -801,7 +801,7 @@
 			</input>
 			<output>
 				<port id="2">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -809,10 +809,10 @@
 			</output>
 		</layer>
 		<layer id="40" name="onet/conv5/Reshape" precision="FP32" type="Reshape">
-			<data axis="0" dim="8,1152" num_axes="-1"/>
+			<data axis="0" dim="2,1152" num_axes="-1"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>128</dim>
 					<dim>3</dim>
 					<dim>3</dim>
@@ -820,7 +820,7 @@
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>1152</dim>
 				</port>
 			</output>
@@ -829,13 +829,13 @@
 			<data out-size="256"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>1152</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</output>
@@ -847,13 +847,13 @@
 		<layer id="42" name="onet/prelu5/Mul" precision="FP32" type="ScaleShift">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</output>
@@ -865,13 +865,13 @@
 		<layer id="43" name="onet/prelu5/Relu_1" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</output>
@@ -879,13 +879,13 @@
 		<layer id="44" name="onet/prelu5/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</output>
@@ -897,13 +897,13 @@
 		<layer id="45" name="onet/prelu5/Relu" precision="FP32" type="ReLU">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</output>
@@ -912,17 +912,17 @@
 			<data operation="sum"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</output>
@@ -931,13 +931,13 @@
 			<data out-size="4"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>4</dim>
 				</port>
 			</output>
@@ -950,13 +950,13 @@
 			<data out-size="10"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>10</dim>
 				</port>
 			</output>
@@ -969,13 +969,13 @@
 			<data out-size="2"/>
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>256</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>2</dim>
 				</port>
 			</output>
@@ -987,13 +987,13 @@
 		<layer id="50" name="onet/prob1" precision="FP32" type="SoftMax">
 			<input>
 				<port id="0">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>2</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
-					<dim>8</dim>
+					<dim>2</dim>
 					<dim>2</dim>
 				</port>
 			</output>
@@ -1002,10 +1002,10 @@
 	<edges>
 		<edge from-layer="0" from-port="0" to-layer="1" to-port="0"/>
 		<edge from-layer="1" from-port="3" to-layer="2" to-port="0"/>
-		<edge from-layer="2" from-port="1" to-layer="3" to-port="0"/>
+		<edge from-layer="2" from-port="1" to-layer="3" to-port="1"/>
 		<edge from-layer="3" from-port="3" to-layer="4" to-port="0"/>
 		<edge from-layer="4" from-port="1" to-layer="5" to-port="0"/>
-		<edge from-layer="5" from-port="1" to-layer="6" to-port="1"/>
+		<edge from-layer="5" from-port="1" to-layer="6" to-port="0"/>
 		<edge from-layer="1" from-port="3" to-layer="7" to-port="0"/>
 		<edge from-layer="7" from-port="1" to-layer="8" to-port="0"/>
 		<edge from-layer="6" from-port="3" to-layer="9" to-port="0"/>
@@ -1013,10 +1013,10 @@
 		<edge from-layer="9" from-port="2" to-layer="10" to-port="0"/>
 		<edge from-layer="10" from-port="1" to-layer="11" to-port="0"/>
 		<edge from-layer="11" from-port="3" to-layer="12" to-port="0"/>
-		<edge from-layer="12" from-port="1" to-layer="13" to-port="0"/>
+		<edge from-layer="12" from-port="1" to-layer="13" to-port="1"/>
 		<edge from-layer="13" from-port="3" to-layer="14" to-port="0"/>
 		<edge from-layer="14" from-port="1" to-layer="15" to-port="0"/>
-		<edge from-layer="15" from-port="1" to-layer="16" to-port="1"/>
+		<edge from-layer="15" from-port="1" to-layer="16" to-port="0"/>
 		<edge from-layer="11" from-port="3" to-layer="17" to-port="0"/>
 		<edge from-layer="17" from-port="1" to-layer="18" to-port="0"/>
 		<edge from-layer="16" from-port="3" to-layer="19" to-port="0"/>
@@ -1024,7 +1024,7 @@
 		<edge from-layer="19" from-port="2" to-layer="20" to-port="0"/>
 		<edge from-layer="20" from-port="1" to-layer="21" to-port="0"/>
 		<edge from-layer="21" from-port="3" to-layer="22" to-port="0"/>
-		<edge from-layer="22" from-port="1" to-layer="23" to-port="0"/>
+		<edge from-layer="22" from-port="1" to-layer="23" to-port="1"/>
 		<edge from-layer="23" from-port="3" to-layer="24" to-port="0"/>
 		<edge from-layer="24" from-port="1" to-layer="25" to-port="0"/>
 		<edge from-layer="25" from-port="1" to-layer="26" to-port="0"/>

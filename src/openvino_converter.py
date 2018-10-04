@@ -30,7 +30,7 @@ def push(name, dirame):
 
 def conver_onet(dir, data_type='FP32', prefix=None, do_push=False):
     # Set batch size for conversion
-    batch_size = 8
+    batch_size = 2
 
     out_dir = os.path.join(dir, "openvino")
     if not os.path.exists(out_dir):

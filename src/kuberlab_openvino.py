@@ -9,7 +9,6 @@ import numpy as np
 from openvino import inference_engine as ie
 from scipy import misc
 import six
-import tensorflow as tf
 
 import align.detect_face as detect_face
 import facenet
@@ -259,123 +258,122 @@ def main():
     bounding_boxes = []
     labels = []
 
-    with tf.Session() as sess:
-        pnets_proxy = []
-        for p in pnets:
-            pnets_proxy.append(p.proxy())
+    pnets_proxy = []
+    for p in pnets:
+        pnets_proxy.append(p.proxy())
 
-        def _rnet_proxy(img):
-            output = r_net.infer({rnet_input_name: img})
-            return output[rnet_output_name0], output[rnet_output_name1]
+    def _rnet_proxy(img):
+        output = r_net.infer({rnet_input_name: img})
+        return output[rnet_output_name0], output[rnet_output_name1]
 
-        def _onet_proxy(img):
-            # img = img.reshape([1, 3, 48, 48])
-            output = o_net.infer({onet_input_name: img})
-            return output[onet_output_name0], output[onet_output_name1], output[onet_output_name2]
+    def _onet_proxy(img):
+        # img = img.reshape([1, 3, 48, 48])
+        output = o_net.infer({onet_input_name: img})
+        return output[onet_output_name0], output[onet_output_name1], output[onet_output_name2]
 
-        pnet, rnet, onet = detect_face.create_openvino_mtcnn(
-            pnets_proxy, _rnet_proxy, _onet_proxy, onet_batch_size
-        )
-        try:
-            while True:
-                # Capture frame-by-frame
-                if args.image is None:
-                    frame = vs.read()
-                    if isinstance(frame, tuple):
-                        frame = frame[1]
-                else:
-                    frame = cv2.imread(args.image).astype(np.float32)
+    pnet, rnet, onet = detect_face.create_openvino_mtcnn(
+        pnets_proxy, _rnet_proxy, _onet_proxy, onet_batch_size
+    )
+    try:
+        while True:
+            # Capture frame-by-frame
+            if args.image is None:
+                frame = vs.read()
+                if isinstance(frame, tuple):
+                    frame = frame[1]
+            else:
+                frame = cv2.imread(args.image).astype(np.float32)
 
-                # h = 400
-                # w = int(round(frame.shape[1] / (frame.shape[0] / float(h))))
-                h = 480
-                w = 640
-                if (frame.shape[1] != w) or (frame.shape[0] != h):
-                    frame = cv2.resize(
-                        frame, (w, h), interpolation=cv2.INTER_AREA
-                    )
+            # h = 400
+            # w = int(round(frame.shape[1] / (frame.shape[0] / float(h))))
+            h = 480
+            w = 640
+            if (frame.shape[1] != w) or (frame.shape[0] != h):
+                frame = cv2.resize(
+                    frame, (w, h), interpolation=cv2.INTER_AREA
+                )
 
-                # BGR -> RGB
-                rgb_frame = frame[:, :, ::-1]
-                # rgb_frame = frame
-                # print("Frame {}".format(frame.shape))
+            # BGR -> RGB
+            rgb_frame = frame[:, :, ::-1]
+            # rgb_frame = frame
+            # print("Frame {}".format(frame.shape))
 
-                if (frame_count % frame_interval) == 0:
+            if (frame_count % frame_interval) == 0:
+                # t = time.time()
+                bounding_boxes, _ = detect_face.detect_face_openvino(
+                    rgb_frame, pnet, rnet, onet, threshold
+                )
+                # d = (time.time() - t) * 1000
+                # LOG.info('recognition: %.3fms' % d)
+                # Check our current fps
+                end_time = time.time()
+                if (end_time - start_time) > fps_display_interval:
+                    frame_rate = int(frame_count/(end_time - start_time))
+                    start_time = time.time()
+                    frame_count = 0
+
+                if use_classifier:
+                    imgs = get_images(rgb_frame, bounding_boxes)
+                    labels = []
                     # t = time.time()
-                    bounding_boxes, _ = detect_face.detect_face_openvino(
-                        rgb_frame, pnet, rnet, onet, threshold
-                    )
+                    for img_idx, img in enumerate(imgs):
+                        img = img.astype(np.float32)
+
+                        # Infer
+                        img = img.transpose([2, 0, 1]).reshape([1, 3, 160, 160])
+                        output = face_net.infer({facenet_input: img})
+                        output = output[facenet_output]
+                        try:
+                            output = output.reshape(1, model.shape_fit_[1])
+                            predictions = model.predict_proba(output)
+                        except ValueError as e:
+                            # Can not reshape
+                            print(
+                                "ERROR: Output from graph doesn't consistent"
+                                " with classifier model: %s" % e
+                            )
+                            continue
+
+                        best_class_indices = np.argmax(predictions, axis=1)
+                        best_class_probabilities = predictions[
+                            np.arange(len(best_class_indices)),
+                            best_class_indices
+                        ]
+
+                        for i in range(len(best_class_indices)):
+                            bb = bounding_boxes[img_idx].astype(int)
+                            text = '%.1f%% %s' % (
+                                best_class_probabilities[i] * 100,
+                                class_names[best_class_indices[i]]
+                            )
+                            labels.append({
+                                'label': text,
+                                'left': bb[0],
+                                'top': bb[1] - 5
+                            })
+                            # DEBUG
+                            print('%4d  %s: %.3f' % (
+                                i,
+                                class_names[best_class_indices[i]],
+                                best_class_probabilities[i])
+                                  )
                     # d = (time.time() - t) * 1000
-                    # LOG.info('recognition: %.3fms' % d)
-                    # Check our current fps
-                    end_time = time.time()
-                    if (end_time - start_time) > fps_display_interval:
-                        frame_rate = int(frame_count/(end_time - start_time))
-                        start_time = time.time()
-                        frame_count = 0
+                    # LOG.info('facenet: %.3fms' % d)
 
-                    if use_classifier:
-                        imgs = get_images(rgb_frame, bounding_boxes)
-                        labels = []
-                        # t = time.time()
-                        for img_idx, img in enumerate(imgs):
-                            img = img.astype(np.float32)
+            add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
 
-                            # Infer
-                            img = img.transpose([2, 0, 1]).reshape([1, 3, 160, 160])
-                            output = face_net.infer({facenet_input: img})
-                            output = output[facenet_output]
-                            try:
-                                output = output.reshape(1, model.shape_fit_[1])
-                                predictions = model.predict_proba(output)
-                            except ValueError as e:
-                                # Can not reshape
-                                print(
-                                    "ERROR: Output from graph doesn't consistent"
-                                    " with classifier model: %s" % e
-                                )
-                                continue
+            frame_count += 1
+            if args.image is None:
+                cv2.imshow('Video', frame)
+            else:
+                print(bounding_boxes)
+                break
 
-                            best_class_indices = np.argmax(predictions, axis=1)
-                            best_class_probabilities = predictions[
-                                np.arange(len(best_class_indices)),
-                                best_class_indices
-                            ]
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
-                            for i in range(len(best_class_indices)):
-                                bb = bounding_boxes[img_idx].astype(int)
-                                text = '%.1f%% %s' % (
-                                    best_class_probabilities[i] * 100,
-                                    class_names[best_class_indices[i]]
-                                )
-                                labels.append({
-                                    'label': text,
-                                    'left': bb[0],
-                                    'top': bb[1] - 5
-                                })
-                                # DEBUG
-                                print('%4d  %s: %.3f' % (
-                                    i,
-                                    class_names[best_class_indices[i]],
-                                    best_class_probabilities[i])
-                                      )
-                        # d = (time.time() - t) * 1000
-                        # LOG.info('facenet: %.3fms' % d)
-
-                add_overlays(frame, bounding_boxes, frame_rate, labels=labels)
-
-                frame_count += 1
-                if args.image is None:
-                    cv2.imshow('Video', frame)
-                else:
-                    print(bounding_boxes)
-                    break
-
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
-        except (KeyboardInterrupt, SystemExit) as e:
-            print('Caught %s: %s' % (e.__class__.__name__, e))
+    except (KeyboardInterrupt, SystemExit) as e:
+        print('Caught %s: %s' % (e.__class__.__name__, e))
 
     # When everything is done, release the capture
     # video_capture.release()
