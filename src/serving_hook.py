@@ -178,7 +178,7 @@ def preprocess(inputs, ctx, **kwargs):
             frame = image_resize(image, width=width)
             scaled = (float(width) / image.shape[1], float(height) / image.shape[0])
     else:
-        if image.shape[0] > height or image.shape[1] > width:
+        if image.shape[0] != height or image.shape[1] != width:
             frame = cv2.resize(
                 image, (width, height), interpolation=cv2.INTER_AREA
             )
