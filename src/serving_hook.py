@@ -158,8 +158,7 @@ def preprocess(inputs, ctx, **kwargs):
     if isinstance(image[0], (six.string_types, bytes)):
         image = Image.open(io.BytesIO(image[0]))
 
-        rgba_image = Image.fromarray(image)
-        image = rgba_image.convert('RGB')
+        image = image.convert('RGB')
         image = np.array(image)
 
     if image.shape[2] == 4:
