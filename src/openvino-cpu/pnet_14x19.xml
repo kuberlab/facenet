@@ -6,8 +6,8 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>3</dim>
-					<dim>19</dim>
 					<dim>14</dim>
+					<dim>19</dim>
 				</port>
 			</output>
 		</layer>
@@ -17,21 +17,21 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>3</dim>
-					<dim>19</dim>
 					<dim>14</dim>
+					<dim>19</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="464" size="1080"/>
-				<biases offset="1544" size="40"/>
+				<weights offset="296" size="1080"/>
+				<biases offset="1376" size="40"/>
 			</blobs>
 		</layer>
 		<layer id="2" name="pnet/PReLU1/MaxPool_1" precision="FP32" type="Pooling">
@@ -40,16 +40,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 		</layer>
@@ -58,21 +58,21 @@
 				<port id="1">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="424" size="40"/>
-				<biases offset="1584" size="40"/>
+				<weights offset="256" size="40"/>
+				<biases offset="1416" size="40"/>
 			</blobs>
 		</layer>
 		<layer id="4" name="pnet/PReLU1/Relu_1" precision="FP32" type="ReLU">
@@ -80,16 +80,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 		</layer>
@@ -99,39 +99,39 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 		</layer>
 		<layer id="6" name="pnet/PReLU1/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="1">
+				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="384" size="40"/>
-				<biases offset="1624" size="40"/>
+				<weights offset="1456" size="40"/>
+				<biases offset="1496" size="40"/>
 			</blobs>
 		</layer>
 		<layer id="7" name="pnet/PReLU1/MaxPool" precision="FP32" type="Pooling">
@@ -140,16 +140,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 		</layer>
@@ -158,16 +158,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 		</layer>
@@ -177,41 +177,41 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 				<port id="1">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</output>
 		</layer>
 		<layer id="10" name="pnet/pool1" precision="FP32" type="Pooling">
-			<data auto_pad="same_upper" exclude-pad="true" kernel-x="2" kernel-y="2" pad-b="1" pad-r="0" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,2,2" stride-x="2" stride-y="2"/>
+			<data auto_pad="same_upper" exclude-pad="true" kernel-x="2" kernel-y="2" pad-b="0" pad-r="1" pad-x="0" pad-y="0" pool-method="max" rounding-type="floor" stride="1,1,2,2" stride-x="2" stride-y="2"/>
 			<input>
 				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>17</dim>
 					<dim>12</dim>
+					<dim>17</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>9</dim>
 					<dim>6</dim>
+					<dim>9</dim>
 				</port>
 			</output>
 		</layer>
@@ -221,21 +221,21 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>10</dim>
-					<dim>9</dim>
 					<dim>6</dim>
+					<dim>9</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="1664" size="5760"/>
-				<biases offset="7424" size="64"/>
+				<weights offset="1536" size="5760"/>
+				<biases offset="7296" size="64"/>
 			</blobs>
 		</layer>
 		<layer id="12" name="pnet/PReLU2/MaxPool_1" precision="FP32" type="Pooling">
@@ -244,16 +244,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 		</layer>
@@ -262,21 +262,21 @@
 				<port id="1">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="320" size="64"/>
-				<biases offset="7488" size="64"/>
+				<weights offset="192" size="64"/>
+				<biases offset="7360" size="64"/>
 			</blobs>
 		</layer>
 		<layer id="14" name="pnet/PReLU2/Relu_1" precision="FP32" type="ReLU">
@@ -284,16 +284,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 		</layer>
@@ -303,16 +303,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 		</layer>
@@ -321,21 +321,21 @@
 				<port id="1">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="256" size="64"/>
-				<biases offset="7552" size="64"/>
+				<weights offset="128" size="64"/>
+				<biases offset="7424" size="64"/>
 			</blobs>
 		</layer>
 		<layer id="17" name="pnet/PReLU2/MaxPool" precision="FP32" type="Pooling">
@@ -344,16 +344,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 		</layer>
@@ -362,16 +362,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 		</layer>
@@ -381,22 +381,22 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 				<port id="1">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</output>
 		</layer>
@@ -406,21 +406,21 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>16</dim>
-					<dim>7</dim>
 					<dim>4</dim>
+					<dim>7</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="7616" size="18432"/>
-				<biases offset="26048" size="128"/>
+				<weights offset="7488" size="18432"/>
+				<biases offset="25920" size="128"/>
 			</blobs>
 		</layer>
 		<layer id="21" name="pnet/PReLU3/MaxPool_1" precision="FP32" type="Pooling">
@@ -429,16 +429,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 		</layer>
@@ -447,21 +447,21 @@
 				<port id="1">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="128" size="128"/>
-				<biases offset="26176" size="128"/>
+				<weights offset="0" size="128"/>
+				<biases offset="26048" size="128"/>
 			</blobs>
 		</layer>
 		<layer id="23" name="pnet/PReLU3/Relu_1" precision="FP32" type="ReLU">
@@ -469,16 +469,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 		</layer>
@@ -488,38 +488,38 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 		</layer>
 		<layer id="25" name="pnet/PReLU3/Mul_2" precision="FP32" type="ScaleShift">
 			<input>
-				<port id="1">
+				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 			<blobs>
-				<weights offset="0" size="128"/>
+				<weights offset="26176" size="128"/>
 				<biases offset="26304" size="128"/>
 			</blobs>
 		</layer>
@@ -529,16 +529,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 		</layer>
@@ -547,16 +547,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 		</layer>
@@ -566,22 +566,22 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 				<port id="1">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 		</layer>
@@ -591,16 +591,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>4</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 			<blobs>
@@ -614,16 +614,16 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>32</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3">
 					<dim>1</dim>
 					<dim>2</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 			<blobs>
@@ -637,8 +637,8 @@
 				<port id="0">
 					<dim>1</dim>
 					<dim>2</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</input>
 			<output>
@@ -666,7 +666,7 @@
 			</output>
 		</layer>
 		<layer id="33" name="pnet/prob1" precision="FP32" type="Reshape">
-			<data axis="0" dim="1,2,5,2" num_axes="-1"/>
+			<data axis="0" dim="1,2,2,5" num_axes="-1"/>
 			<input>
 				<port id="0">
 					<dim>1</dim>
@@ -678,8 +678,8 @@
 				<port id="1">
 					<dim>1</dim>
 					<dim>2</dim>
-					<dim>5</dim>
 					<dim>2</dim>
+					<dim>5</dim>
 				</port>
 			</output>
 		</layer>
@@ -690,7 +690,7 @@
 		<edge from-layer="2" from-port="1" to-layer="3" to-port="1"/>
 		<edge from-layer="3" from-port="3" to-layer="4" to-port="0"/>
 		<edge from-layer="4" from-port="1" to-layer="5" to-port="0"/>
-		<edge from-layer="5" from-port="1" to-layer="6" to-port="1"/>
+		<edge from-layer="5" from-port="1" to-layer="6" to-port="0"/>
 		<edge from-layer="1" from-port="3" to-layer="7" to-port="0"/>
 		<edge from-layer="7" from-port="1" to-layer="8" to-port="0"/>
 		<edge from-layer="6" from-port="3" to-layer="9" to-port="0"/>
@@ -711,7 +711,7 @@
 		<edge from-layer="21" from-port="1" to-layer="22" to-port="1"/>
 		<edge from-layer="22" from-port="3" to-layer="23" to-port="0"/>
 		<edge from-layer="23" from-port="1" to-layer="24" to-port="0"/>
-		<edge from-layer="24" from-port="1" to-layer="25" to-port="1"/>
+		<edge from-layer="24" from-port="1" to-layer="25" to-port="0"/>
 		<edge from-layer="20" from-port="3" to-layer="26" to-port="0"/>
 		<edge from-layer="26" from-port="1" to-layer="27" to-port="0"/>
 		<edge from-layer="25" from-port="3" to-layer="28" to-port="0"/>
