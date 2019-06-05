@@ -25,23 +25,26 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from scipy import misc
-import sys
-import os
 import argparse
-import tensorflow as tf
+import os
+import random
+import sys
+import time
+
+import cv2
 import numpy as np
+from scipy import misc
+import tensorflow as tf
+
 import facenet
 import align.detect_face
-import random
-from time import sleep
 
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
 
 def main(args):
-    sleep(random.random())
+    time.sleep(random.random())
     output_dir = os.path.expanduser(args.output_dir)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -87,18 +90,21 @@ def main(args):
             print(image_path)
             if not os.path.exists(output_filename):
                 try:
-                    img = misc.imread(image_path)
+                    # img = misc.imread(image_path)
+                    img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+                    # convert BGR -> RGB
+                    img = img[:, :, ::-1]
                 except (IOError, ValueError, IndexError) as e:
-                    errorMessage = '{}: {}'.format(image_path, e)
-                    print(errorMessage)
+                    error_message = '{}: {}'.format(image_path, e)
+                    print(error_message)
                 else:
                     if img.ndim < 2:
                         print('Unable to align "%s", shape %s' % (image_path, img.shape))
-                        #text_file.write('%s\n' % output_filename)
+                        # text_file.write('%s\n' % output_filename)
                         continue
                     if img.ndim == 2:
                         img = facenet.to_rgb(img)
-                    img = img[:, :, 0:3]
+                    # img = img[:, :, 0:3]
 
                     try:
                         bounding_boxes, _ = align.detect_face.detect_face_for_align(
@@ -137,18 +143,23 @@ def main(args):
                             bb[2] = np.minimum(det[2] + args.margin / 2, img_size[1])
                             bb[3] = np.minimum(det[3] + args.margin / 2, img_size[0])
                             cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
-                            scaled = misc.imresize(cropped, (args.image_size, args.image_size), interp='bilinear')
+                            scaled = cv2.resize(
+                                cropped, (args.image_size, args.image_size), interpolation=cv2.INTER_LINEAR
+                            )
                             nrof_successfully_aligned += 1
                             filename_base, file_extension = os.path.splitext(output_filename)
                             if args.detect_multiple_faces:
                                 output_filename_n = "{}_{}{}".format(filename_base, i, file_extension)
                             else:
                                 output_filename_n = "{}{}".format(filename_base, file_extension)
-                            misc.imsave(output_filename_n, scaled)
-                            #text_file.write('%s %d %d %d %d\n' % (output_filename_n, bb[0], bb[1], bb[2], bb[3]))
+
+                            scaled = cv2.cvtColor(scaled, cv2.COLOR_RGB2BGR)
+                            cv2.imwrite(output_filename_n, scaled)
+                            # misc.imsave(output_filename_n, scaled)
+                            # text_file.write('%s %d %d %d %d\n' % (output_filename_n, bb[0], bb[1], bb[2], bb[3]))
                     else:
                         print('Unable to align "%s", n_faces=%s' % (image_path, nrof_faces))
-                        #text_file.write('%s\n' % (output_filename))
+                        # text_file.write('%s\n' % (output_filename))
 
     print('Total number of images: %d' % nrof_images_total)
     print('Number of successfully aligned images: %d' % nrof_successfully_aligned)
