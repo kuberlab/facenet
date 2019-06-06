@@ -44,7 +44,6 @@ from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
 
-
 logging = tf.logging
 logging.set_verbosity(logging.INFO)
 
@@ -385,7 +384,8 @@ def train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_o
         stat['learning_rate'][epoch - 1] = lr_
         stat['accuracy'][step_ - 1] = accuracy_
         stat['prelogits_hist'][epoch - 1, :] += \
-        np.histogram(np.minimum(np.abs(prelogits_), prelogits_hist_max), bins=1000, range=(0.0, prelogits_hist_max))[0]
+            np.histogram(np.minimum(np.abs(prelogits_), prelogits_hist_max), bins=1000,
+                         range=(0.0, prelogits_hist_max))[0]
 
         duration = time.time() - start_time
         logging.info(
@@ -443,7 +443,7 @@ def validate(args, sess, epoch, image_list, label_list, enqueue_op, image_paths_
     stat['val_accuracy'][val_index] = np.mean(accuracy_array)
 
     logging.info('Validation Epoch: %d\tTime %.3f\tLoss %2.3f\tXent %2.3f\tAccuracy %2.3f' %
-          (epoch, duration, np.mean(loss_array), np.mean(xent_array), np.mean(accuracy_array)))
+                 (epoch, duration, np.mean(loss_array), np.mean(xent_array), np.mean(accuracy_array)))
 
 
 def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phase_train_placeholder,
@@ -480,7 +480,7 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
         lab_array[lab] = lab
         emb_array[lab, :] = emb
         if i % 10 == 9:
-            logging.info('.', end='')
+            print('.', end='')
             sys.stdout.flush()
     logging.info('')
     embeddings = np.zeros((nrof_embeddings, embedding_size * nrof_flips))
