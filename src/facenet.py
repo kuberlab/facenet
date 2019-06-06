@@ -107,9 +107,8 @@ def down_upscale(image, multiplier, randomize=False):
         apply = True if random.randint(0, 1) else False
 
     if apply:
-        tf.logging.info('APPLY DOWN UPSCALE')
         h, w = image.shape[0:2]
-        downscaled = cv2.resize(image, (int(w / multiplier), int(h / multiplier)))
+        downscaled = cv2.resize(np.array(image), (int(w / multiplier), int(h / multiplier)))
         scaled = cv2.resize(downscaled, (w, h))
         return scaled
 
