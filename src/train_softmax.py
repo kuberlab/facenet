@@ -562,16 +562,24 @@ def parse_arguments(argv):
                         help='Number of batches per epoch.', default=1000)
     parser.add_argument('--embedding_size', type=int,
                         help='Dimensionality of the embedding.', default=128)
-    parser.add_argument('--random_crop',
-                        help='Performs random cropping of training images. If false, the center image_size pixels from the training images are used. ' +
-                             'If the size of the images in the data directory is equal to image_size no cropping is performed',
-                        action='store_true')
+    parser.add_argument(
+        '--random_crop',
+        help=(
+            'Performs random cropping of training images. If false,'
+            ' the center image_size pixels from the training images are used. '
+            'If the size of the images in the data directory is equal to '
+            'image_size no cropping is performed',
+        ),
+        action='store_true'
+    )
     parser.add_argument('--random_flip',
                         help='Performs random horizontal flipping of training images.', action='store_true')
     parser.add_argument('--random_rotate',
                         help='Performs random rotations of training images.', action='store_true')
     parser.add_argument('--use_fixed_image_standardization',
                         help='Performs fixed standardization of images.', action='store_true')
+    parser.add_argument('--downscale',
+                        help='Performs random down and upscale of images.', action='store_true')
     parser.add_argument('--keep_probability', type=float,
                         help='Keep probability of dropout for the fully connected layer(s).', default=1.0)
     parser.add_argument('--weight_decay', type=float,
