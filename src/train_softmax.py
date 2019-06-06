@@ -480,8 +480,7 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
         lab_array[lab] = lab
         emb_array[lab, :] = emb
         if i % 10 == 9:
-            print('.', end='')
-            sys.stdout.flush()
+            logging.info('[%s/%s]' % (i, nrof_batches))
     logging.info('')
     embeddings = np.zeros((nrof_embeddings, embedding_size * nrof_flips))
     if use_flipped_images:
