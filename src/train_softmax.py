@@ -431,8 +431,7 @@ def validate(args, sess, epoch, image_list, label_list, enqueue_op, image_paths_
         loss_, cross_entropy_mean_, accuracy_ = sess.run([loss, cross_entropy_mean, accuracy], feed_dict=feed_dict)
         loss_array[i], xent_array[i], accuracy_array[i] = (loss_, cross_entropy_mean_, accuracy_)
         if i % 10 == 9:
-            logging.info('.', end='')
-            sys.stdout.flush()
+            logging.info('[%s/%s]' % (i, nrof_batches))
     logging.info('')
 
     duration = time.time() - start_time
