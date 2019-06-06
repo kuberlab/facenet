@@ -245,15 +245,17 @@ def main(args):
                 step = sess.run(global_step, feed_dict=None)
                 # Train for one epoch
                 t = time.time()
-                cont = train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_op,
-                             image_paths_placeholder, labels_placeholder,
-                             learning_rate_placeholder, phase_train_placeholder, batch_size_placeholder,
-                             control_placeholder, global_step,
-                             total_loss, train_op, summary_op, summary_writer, regularization_losses,
-                             args.learning_rate_schedule_file,
-                             stat, cross_entropy_mean, accuracy, learning_rate,
-                             prelogits, prelogits_center_loss, args.random_rotate, args.random_crop, args.random_flip,
-                             prelogits_norm, args.prelogits_hist_max, args.use_fixed_image_standardization)
+                cont = train(
+                    args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_op,
+                    image_paths_placeholder, labels_placeholder,
+                    learning_rate_placeholder, phase_train_placeholder, batch_size_placeholder,
+                    control_placeholder, global_step,
+                    total_loss, train_op, summary_op, summary_writer, regularization_losses,
+                    args.learning_rate_schedule_file,
+                    stat, cross_entropy_mean, accuracy, learning_rate,
+                    prelogits, prelogits_center_loss, args.random_rotate, args.random_crop, args.random_flip,
+                    prelogits_norm, args.prelogits_hist_max, args.use_fixed_image_standardization, args.downscale
+                )
                 stat['time_train'][epoch - 1] = time.time() - t
 
                 if not cont:
@@ -330,7 +332,7 @@ def train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_o
           loss, train_op, summary_op, summary_writer, reg_losses, learning_rate_schedule_file,
           stat, cross_entropy_mean, accuracy,
           learning_rate, prelogits, prelogits_center_loss, random_rotate, random_crop, random_flip, prelogits_norm,
-          prelogits_hist_max, use_fixed_image_standardization):
+          prelogits_hist_max, use_fixed_image_standardization, downscale):
     batch_number = 0
 
     if args.learning_rate > 0.0:
@@ -348,7 +350,12 @@ def train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_o
     # Enqueue one epoch of image paths and labels
     labels_array = np.expand_dims(np.array(label_epoch), 1)
     image_paths_array = np.expand_dims(np.array(image_epoch), 1)
-    control_value = facenet.RANDOM_ROTATE * random_rotate + facenet.RANDOM_CROP * random_crop + facenet.RANDOM_FLIP * random_flip + facenet.FIXED_STANDARDIZATION * use_fixed_image_standardization
+    control_value = facenet.RANDOM_ROTATE * random_rotate
+    control_value += facenet.RANDOM_CROP * random_crop
+    control_value += facenet.RANDOM_FLIP * random_flip
+    control_value += facenet.FIXED_STANDARDIZATION * use_fixed_image_standardization
+    control_value += facenet.DOWN_SCALE * downscale
+
     control_array = np.ones_like(labels_array) * control_value
     sess.run(enqueue_op, {image_paths_placeholder: image_paths_array, labels_placeholder: labels_array,
                           control_placeholder: control_array})

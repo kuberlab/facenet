@@ -27,6 +27,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import cv2
 import os
 from subprocess import Popen, PIPE
 import tensorflow as tf
@@ -100,12 +101,29 @@ def random_rotate_image(image):
     return misc.imrotate(image, angle, 'bicubic')
 
 
+def down_upscale(image, multiplier, randomize=False):
+    apply = True
+    if randomize:
+        apply = True if random.randint(0, 1) else False
+
+    if apply:
+        tf.logging.info('APPLY DOWN UPSCALE')
+        h, w = image.shape[0:2]
+        downscaled = cv2.resize(image, (int(w / multiplier), int(h / multiplier)))
+        scaled = cv2.resize(downscaled, (w, h))
+        return scaled
+
+    return image
+
+
 # 1: Random rotate 2: Random crop  4: Random flip  8:  Fixed image standardization  16: Flip
 RANDOM_ROTATE = 1
 RANDOM_CROP = 2
 RANDOM_FLIP = 4
 FIXED_STANDARDIZATION = 8
 FLIP = 16
+GAUSSIAN_BLUR = 32
+DOWN_SCALE = 64
 
 
 def create_input_pipeline(input_queue, image_size, nrof_preprocess_threads, batch_size_placeholder):
@@ -116,6 +134,9 @@ def create_input_pipeline(input_queue, image_size, nrof_preprocess_threads, batc
         for filename in tf.unstack(filenames):
             file_contents = tf.read_file(filename)
             image = tf.image.decode_image(file_contents, 3)
+            image = tf.cond(get_control_flag(control[0], DOWN_SCALE),
+                            lambda: tf.py_func(down_upscale, [image, 3, True], tf.uint8),
+                            lambda: image)
             image = tf.cond(get_control_flag(control[0], RANDOM_ROTATE),
                             lambda: tf.py_func(random_rotate_image, [image], tf.uint8),
                             lambda: tf.identity(image))
@@ -131,6 +152,10 @@ def create_input_pipeline(input_queue, image_size, nrof_preprocess_threads, batc
             image = tf.cond(get_control_flag(control[0], FLIP),
                             lambda: tf.image.flip_left_right(image),
                             lambda: tf.identity(image))
+            # image = tf.cond(get_control_flag(control[0], GAUSSIAN_BLUR),
+            #                 lambda: image,
+            #                 lambda: image)
+
             # pylint: disable=no-member
             image.set_shape(image_size + (3,))
             images.append(image)
