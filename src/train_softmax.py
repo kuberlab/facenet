@@ -53,10 +53,10 @@ def main(args):
     image_size = (args.image_size, args.image_size)
 
     subdir = datetime.strftime(datetime.now(), '%Y%m%d-%H%M%S')
-    log_dir = os.path.join(os.path.expanduser(args.logs_base_dir), subdir)
+    log_dir = os.path.expanduser(args.logs_base_dir)
     if not os.path.isdir(log_dir):  # Create the log directory if it doesn't exist
         os.makedirs(log_dir)
-    model_dir = os.path.join(os.path.expanduser(args.models_base_dir), subdir)
+    model_dir = os.path.expanduser(args.models_base_dir)
     if not os.path.isdir(model_dir):  # Create the model directory if it doesn't exist
         os.makedirs(model_dir)
 
@@ -271,7 +271,7 @@ def main(args):
                 stat['time_validate'][epoch - 1] = time.time() - t
 
                 # Save variables and the metagraph if it doesn't exist already
-                save_variables_and_metagraph(sess, saver, summary_writer, model_dir, subdir, epoch)
+                save_variables_and_metagraph(sess, saver, summary_writer, model_dir, epoch)
 
                 # Evaluate on LFW
                 t = time.time()
@@ -510,15 +510,15 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     stat['lfw_valrate'][epoch - 1] = val
 
 
-def save_variables_and_metagraph(sess, saver, summary_writer, model_dir, model_name, step):
+def save_variables_and_metagraph(sess, saver, summary_writer, model_dir, step):
     # Save the model checkpoint
     logging.info('Saving variables')
     start_time = time.time()
-    checkpoint_path = os.path.join(model_dir, 'model-%s.ckpt' % model_name)
+    checkpoint_path = os.path.join(model_dir, 'model.ckpt')
     saver.save(sess, checkpoint_path, global_step=step, write_meta_graph=False)
     save_time_variables = time.time() - start_time
     logging.info('Variables saved in %.2f seconds' % save_time_variables)
-    metagraph_filename = os.path.join(model_dir, 'model-%s.meta' % model_name)
+    metagraph_filename = os.path.join(model_dir, 'model.meta')
     save_time_metagraph = 0
     if not os.path.exists(metagraph_filename):
         logging.info('Saving metagraph')
