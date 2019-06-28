@@ -339,7 +339,7 @@ def train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_o
     else:
         lr = facenet.get_learning_rate_from_file(learning_rate_schedule_file, epoch)
 
-    if lr <= 0:
+    if lr is None or lr <= 0:
         return False
 
     index_epoch = sess.run(index_dequeue_op)
